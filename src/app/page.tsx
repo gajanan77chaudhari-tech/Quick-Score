@@ -24,13 +24,13 @@ const calculateInningStats = (scores: string[]): { runs: number; wickets: number
   let runs = 0;
   let wickets = 0;
   scores.forEach(scoreEntry => {
-    const s = scoreEntry.toUpperCase().trim(); // Trim spaces for consistent parsing
+    const s = scoreEntry.toUpperCase().trim();
     if (!s) return;
 
     if (s.includes('/')) {
-      const parts = s.split('/', 2); // Limit split to 2 parts
-      const runStr = parts[0].replace(/[^0-9]/g, ""); // Extract only digits
-      const wicketStr = parts[1].replace(/[^0-9]/g, ""); // Extract only digits
+      const parts = s.split('/', 2);
+      const runStr = parts[0].replace(/[^0-9]/g, "");
+      const wicketStr = parts[1].replace(/[^0-9]/g, "");
       
       if (runStr) {
         runs += parseInt(runStr, 10);
@@ -39,12 +39,11 @@ const calculateInningStats = (scores: string[]): { runs: number; wickets: number
         wickets += parseInt(wicketStr, 10);
       }
     } else {
-      // No slash, count numbers as runs and 'W's as wickets
-      const runStr = s.replace(/[^0-9W]/gi, "").replace(/W/gi, ""); // Remove non-digits first, then W
+      const runStr = s.replace(/[^0-9W]/gi, "").replace(/W/gi, "");
       if (runStr) {
          runs += parseInt(runStr, 10);
       }
-      const wicketCountFromW = (s.match(/W/g) || []).length; // Count 'W's
+      const wicketCountFromW = (s.match(/W/g) || []).length;
       wickets += wicketCountFromW;
     }
   });
@@ -804,15 +803,15 @@ const extensiveColorOptions = parseColorList(userColorList);
 export default function ScoreScribePage() {
   const [inning1Scores, setInning1Scores] = useState<string[]>(Array(SCORE_BOX_COUNT).fill(""));
   const [inning2Scores, setInning2Scores] = useState<string[]>(Array(SCORE_BOX_COUNT).fill(""));
-  const [inning1TeamName, setInning1TeamName] = useState<string>("");
-  const [teamNameInputBgColor, setTeamNameInputBgColor] = useState<string>(""); // Stores hex string
+  const [teamName, setTeamName] = useState<string>(""); // Renamed from inning1TeamName
+  const [teamNameInputBgColor, setTeamNameInputBgColor] = useState<string>("");
 
 
   const inning1Stats = useMemo(() => calculateInningStats(inning1Scores), [inning1Scores]);
   const inning2Stats = useMemo(() => calculateInningStats(inning2Scores), [inning2Scores]);
 
   const handleResetGame = () => {
-    setInning1TeamName("");
+    setTeamName("");
     setInning1Scores(Array(SCORE_BOX_COUNT).fill(""));
     setInning2Scores(Array(SCORE_BOX_COUNT).fill(""));
     setTeamNameInputBgColor(""); 
@@ -841,17 +840,17 @@ export default function ScoreScribePage() {
           <div className="relative flex items-center group w-full md:max-w-lg">
             <Input
               type="text"
-              placeholder="Team 1 Name (Batting 1st)"
-              value={inning1TeamName}
-              onChange={(e) => setInning1TeamName(e.target.value)}
+              placeholder="Team Name"
+              value={teamName}
+              onChange={(e) => setTeamName(e.target.value)}
               className={cn(
-                "text-center text-xl font-semibold text-foreground placeholder:text-muted-foreground/70",
+                "text-center text-3xl font-semibold text-foreground placeholder:text-muted-foreground/70",
                 "flex-grow py-2",
                 !teamNameInputBgColor && "bg-accent/10 dark:bg-accent/20",
                 "border-primary focus:ring-primary rounded-md"
               )}
               style={{ backgroundColor: teamNameInputBgColor || undefined }}
-              aria-label="Team 1 Name"
+              aria-label="Team Name"
             />
              <DropdownMenu>
               <DropdownMenuTrigger asChild>
@@ -886,14 +885,12 @@ export default function ScoreScribePage() {
           scores={inning1Scores}
           onScoresUpdate={setInning1Scores}
           inningStats={inning1Stats}
-          inningTeamName={inning1TeamName}
         />
         <InningColumn
           inningNumber={2}
           scores={inning2Scores}
           onScoresUpdate={setInning2Scores}
           inningStats={inning2Stats}
-          inningTeamName={undefined} 
         />
       </main>
       
@@ -903,3 +900,6 @@ export default function ScoreScribePage() {
     </div>
   );
 }
+
+
+    

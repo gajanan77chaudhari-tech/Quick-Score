@@ -11,13 +11,12 @@ interface InningColumnProps {
   scores: string[];
   onScoresUpdate: (scores: string[]) => void;
   inningStats: { runs: number; wickets: number };
-  inningTeamName: string;
 }
 
 const SCORE_BOX_COUNT = 17;
 const MAX_INPUT_LENGTH = 10; 
 
-export function InningColumn({ inningNumber, scores: initialScores, onScoresUpdate, inningStats, inningTeamName }: InningColumnProps) {
+export function InningColumn({ inningNumber, scores: initialScores, onScoresUpdate, inningStats }: InningColumnProps) {
   const [inputValues, setInputValues] = useState<string[]>(() => 
     initialScores.length === SCORE_BOX_COUNT ? initialScores : Array(SCORE_BOX_COUNT).fill("")
   );
@@ -28,16 +27,14 @@ export function InningColumn({ inningNumber, scores: initialScores, onScoresUpda
 
   const handleInputChange = (index: number, value: string) => {
     const newValues = [...inputValues];
-    // Allow any character, enforce max length
     const processedValue = value.slice(0, MAX_INPUT_LENGTH); 
     newValues[index] = processedValue;
     setInputValues(newValues);
-    // Pass the raw (but length-limited) value for calculation
     onScoresUpdate(newValues); 
   };
 
   const inningLabel = inningNumber === 1 ? "1st Inning" : "2nd Inning";
-  const cardTitle = inningTeamName ? `${inningTeamName} - ${inningLabel}` : inningLabel;
+  const cardTitle = inningLabel; // Simplified title
 
   return (
     <Card className="w-full md:w-auto md:min-w-[350px] shadow-lg bg-blue-700 dark:bg-blue-800">
@@ -59,7 +56,7 @@ export function InningColumn({ inningNumber, scores: initialScores, onScoresUpda
               className={cn(
                 "h-9 w-full text-center transition-colors duration-300 text-base md:text-sm", 
                 "bg-background dark:bg-slate-800 text-foreground dark:text-gray-100",
-                "focus:ring-ring" // Simplified: no more specific error styling here
+                "focus:ring-ring"
               )}
             />
           </div>
@@ -73,5 +70,7 @@ export function InningColumn({ inningNumber, scores: initialScores, onScoresUpda
     </Card>
   );
 }
+
+    
 
     
