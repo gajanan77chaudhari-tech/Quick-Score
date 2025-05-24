@@ -14,14 +14,14 @@ import {
 } from "@/components/ui/dropdown-menu";
 import { Settings, RotateCcw } from "lucide-react";
 
-const SCORE_BOX_COUNT = 17;
-const MAX_INPUT_LENGTH = 10;
+const SCORE_BOX_COUNT = 17; // Consistent with InningColumn
 
+// Helper function to calculate runs and wickets from an array of score strings
 const calculateInningStats = (scores: string[]): { runs: number; wickets: number } => {
   let runs = 0;
   let wickets = 0;
   scores.forEach(scoreEntry => {
-    const s = scoreEntry.toUpperCase().trim();
+    const s = scoreEntry.toUpperCase().trim(); // Normalize input
     if (!s) return;
 
     if (s.includes('/')) {
@@ -37,9 +37,10 @@ const calculateInningStats = (scores: string[]): { runs: number; wickets: number
       }
     } else if (s === 'W') {
       wickets += 1;
-    } else if (/^\d+$/.test(s)) {
+    } else if (/^\d+$/.test(s)) { // Only digits means runs
       runs += parseInt(s, 10);
     }
+    // Other formats are ignored for calculation
   });
   return { runs, wickets };
 };
@@ -59,7 +60,7 @@ export default function ScoreScribePage() {
   };
 
   return (
-    <div className="p-4 sm:p-6 md:p-8 flex flex-col items-center gap-8 min-h-screen relative">
+    <div className="p-4 sm:p-6 md:p-8 flex flex-col items-center gap-8 min-h-screen relative w-full">
       <div className="absolute top-4 left-4 sm:top-6 sm:left-6 md:top-8 md:left-8 z-10">
         <DropdownMenu>
           <DropdownMenuTrigger asChild>
@@ -85,7 +86,7 @@ export default function ScoreScribePage() {
             value={teamName}
             onChange={(e) => setTeamName(e.target.value)}
             className={cn(
-              "text-center text-2xl font-semibold text-foreground bg-accent/10 dark:bg-accent/20 border-primary focus:ring-primary placeholder:text-muted-foreground/70",
+              "text-center text-3xl font-semibold text-foreground bg-accent/10 dark:bg-accent/20 border-primary focus:ring-primary placeholder:text-muted-foreground/70",
               "w-full md:max-w-md lg:max-w-lg mx-auto" 
             )}
             aria-label="Team Name"
