@@ -78,7 +78,6 @@ export default function ScoreScribePage() {
       </div>
 
       <header className="text-center w-full max-w-md mt-12 sm:mt-10 md:mt-8"> {/* Added margin-top to prevent overlap */}
-        <h1 className="text-4xl sm:text-5xl font-bold text-primary">ScoreScribe</h1>
         <div className="mt-4">
           <Input
             type="text"
@@ -92,9 +91,6 @@ export default function ScoreScribePage() {
             aria-label="Team Name"
           />
         </div>
-        <p className="text-muted-foreground mt-2 text-sm sm:text-base">
-          Enter scores: numbers for runs (e.g., 6, 150), W for wicket, or Runs/Wickets (e.g., 4/1, 10/2). Max {MAX_INPUT_LENGTH} chars.
-        </p>
       </header>
 
       <main className="flex flex-col md:flex-row gap-6 md:gap-8 w-full items-start justify-center mt-4">
