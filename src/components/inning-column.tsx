@@ -69,7 +69,7 @@ export function InningColumn({
 
   return (
     <Card className={cn(
-        "w-full md:w-auto md:min-w-[360px] shadow-lg", 
+        "w-full md:w-auto md:min-w-[180px] shadow-lg", // Reduced md:min-w from [360px] to [180px]
         "bg-blue-700 dark:bg-blue-800" 
       )}>
       <CardHeader>
@@ -77,16 +77,16 @@ export function InningColumn({
       </CardHeader>
       <CardContent className="space-y-2">
         {/* Labels above respective columns */}
-        <div className="flex items-center gap-2 mb-1">
+        <div className="grid grid-cols-2 gap-2 mb-1">
           <Label 
             htmlFor={`inning-${inningNumber}-score-header`} 
-            className="text-sm font-medium text-gray-200 dark:text-gray-300 w-1/4 text-center"
+            className="text-sm font-medium text-gray-200 dark:text-gray-300 text-center"
           >
             Score
           </Label>
           <Label 
             htmlFor={`inning-${inningNumber}-detail-header`} 
-            className="text-sm font-medium text-gray-200 dark:text-gray-300 w-1/4 text-center"
+            className="text-sm font-medium text-gray-200 dark:text-gray-300 text-center"
           >
             Team
           </Label>
@@ -100,7 +100,7 @@ export function InningColumn({
               onChange={(e) => handleScoreInputChange(index, e.target.value)}
               maxLength={MAX_INPUT_LENGTH}
               className={cn(
-                "h-9 text-center transition-colors duration-300 text-base md:text-sm w-1/4", 
+                "h-9 text-center transition-colors duration-300 text-base md:text-sm w-1/2", // Changed from w-1/4 to w-1/2
                 "bg-background dark:bg-slate-800 text-foreground dark:text-gray-100",
                 "focus:ring-ring"
               )}
@@ -113,7 +113,7 @@ export function InningColumn({
               onChange={(e) => handleDetailInputChange(index, e.target.value)}
               maxLength={MAX_INPUT_LENGTH}
               className={cn(
-                "h-9 text-center transition-colors duration-300 text-base md:text-sm w-1/4", 
+                "h-9 text-center transition-colors duration-300 text-base md:text-sm w-1/2", // Changed from w-1/4 to w-1/2
                 "bg-background dark:bg-slate-800 text-foreground dark:text-gray-100",
                 "focus:ring-ring"
               )}
