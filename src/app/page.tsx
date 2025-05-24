@@ -19,7 +19,7 @@ const calculateInningStats = (scores: string[]): { runs: number; wickets: number
   let wickets = 0;
   scores.forEach(scoreEntry => {
     const s = scoreEntry.toUpperCase().trim();
-    if (!s) return; 
+    if (!s) return;
 
     if (s.includes('/')) {
       const parts = s.split('/');
@@ -53,8 +53,7 @@ export default function ScoreScribePage() {
   const [inning1Scores, setInning1Scores] = useState<string[]>(Array(SCORE_BOX_COUNT).fill(""));
   const [inning2Scores, setInning2Scores] = useState<string[]>(Array(SCORE_BOX_COUNT).fill(""));
   
-  const [team1Name, setTeam1Name] = useState<string>("Team 1");
-  const [team2Name, setTeam2Name] = useState<string>("Team 2");
+  const [gameTitle, setGameTitle] = useState<string>("Cricket Match");
 
   const [isDetailModalOpen, setIsDetailModalOpen] = useState<boolean>(false);
 
@@ -86,8 +85,7 @@ export default function ScoreScribePage() {
   const handleResetGame = () => {
     setInning1Scores(Array(SCORE_BOX_COUNT).fill(""));
     setInning2Scores(Array(SCORE_BOX_COUNT).fill(""));
-    setTeam1Name("Team 1");
-    setTeam2Name("Team 2");
+    setGameTitle("Cricket Match");
   };
 
   return (
@@ -95,7 +93,7 @@ export default function ScoreScribePage() {
       <header className="text-center">
         <h1 className="text-4xl sm:text-5xl font-bold text-primary">ScoreScribe</h1>
         <p className="text-muted-foreground mt-1 sm:mt-2 text-sm sm:text-base">
-          Enter scores: numbers for runs (e.g., 6, 10), W for wicket, or Runs/Wickets (e.g., 4/1, 10/2). Max {MAX_INPUT_LENGTH} chars.
+          Enter scores: numbers for runs (e.g., 6, 150), W for wicket, or Runs/Wickets (e.g., 4/1, 10/2). Max {MAX_INPUT_LENGTH} chars.
         </p>
       </header>
 
@@ -107,34 +105,22 @@ export default function ScoreScribePage() {
               <RefreshCw className="h-5 w-5" />
             </Button>
           </CardHeader>
-          <CardContent className="space-y-2 text-base sm:text-lg pt-4">
-            <div className="grid grid-cols-1 sm:grid-cols-2 gap-4 mb-6">
-              <div>
-                <Label htmlFor="team1Name" className="text-sm font-medium text-muted-foreground">1st Inning Team</Label>
-                <Input
-                  id="team1Name"
-                  value={team1Name}
-                  onChange={(e) => setTeam1Name(e.target.value)}
-                  placeholder="Enter 1st Inning Team Name"
-                  className="mt-1 h-9"
-                />
-              </div>
-              <div>
-                <Label htmlFor="team2Name" className="text-sm font-medium text-muted-foreground">2nd Inning Team</Label>
-                <Input
-                  id="team2Name"
-                  value={team2Name}
-                  onChange={(e) => setTeam2Name(e.target.value)}
-                  placeholder="Enter 2nd Inning Team Name"
-                  className="mt-1 h-9"
-                />
-              </div>
+          <CardContent className="space-y-4 text-base sm:text-lg pt-4">
+            <div className="mb-4">
+              <Label htmlFor="gameTitle" className="text-sm font-medium text-muted-foreground">Match Title</Label>
+              <Input
+                id="gameTitle"
+                value={gameTitle}
+                onChange={(e) => setGameTitle(e.target.value)}
+                placeholder="Enter Match Title"
+                className="mt-1 h-9"
+              />
             </div>
             <p className={cn("p-1 rounded transition-all duration-300", highlightSummary1 ? "bg-accent/30" : "")}>
-              {team1Name} (1st): <strong>{inning1Stats.runs} runs</strong>, <strong>{inning1Stats.wickets} wickets</strong>
+              1st Inning: <strong>{inning1Stats.runs} runs</strong>, <strong>{inning1Stats.wickets} wickets</strong>
             </p>
             <p className={cn("p-1 rounded transition-all duration-300", highlightSummary2 ? "bg-accent/30" : "")}>
-              {team2Name} (2nd): <strong>{inning2Stats.runs} runs</strong>, <strong>{inning2Stats.wickets} wickets</strong>
+              2nd Inning: <strong>{inning2Stats.runs} runs</strong>, <strong>{inning2Stats.wickets} wickets</strong>
             </p>
           </CardContent>
         </Card>
@@ -159,14 +145,12 @@ export default function ScoreScribePage() {
           scores={inning1Scores}
           onScoresUpdate={setInning1Scores}
           inningStats={inning1Stats}
-          teamName={team1Name}
         />
         <InningColumn
           inningNumber={2}
           scores={inning2Scores}
           onScoresUpdate={setInning2Scores}
           inningStats={inning2Stats}
-          teamName={team2Name}
         />
       </main>
       
@@ -177,14 +161,14 @@ export default function ScoreScribePage() {
       <Dialog open={isDetailModalOpen} onOpenChange={setIsDetailModalOpen}>
         <DialogContent className="sm:max-w-md bg-card">
           <DialogHeader>
-            <DialogTitle className="text-primary">Detailed Inning Data</DialogTitle>
+            <DialogTitle className="text-primary">Detailed Inning Data: {gameTitle}</DialogTitle>
             <DialogDescription>
-              A summary of scores for each team.
+              A summary of scores for each inning.
             </DialogDescription>
           </DialogHeader>
           <div className="space-y-6 py-4">
             <div>
-              <h3 className="text-lg font-semibold text-primary mb-2">{team1Name} - 1st Inning</h3>
+              <h3 className="text-lg font-semibold text-primary mb-2">1st Inning</h3>
               <p>Total Runs: <strong className="text-accent-foreground">{inning1Stats.runs}</strong></p>
               <p>Total Wickets: <strong className="text-accent-foreground">{inning1Stats.wickets}</strong></p>
               <div className="mt-3">
@@ -195,13 +179,13 @@ export default function ScoreScribePage() {
                       score.trim() !== "" && <span key={`inning1-detail-${index}`} className="p-1.5 bg-muted/70 rounded text-center shadow-sm">{score}</span>
                     ))
                   ) : (
-                    <span className="col-span-full text-center p-2 text-muted-foreground">No scores entered for {team1Name}.</span>
+                    <span className="col-span-full text-center p-2 text-muted-foreground">No scores entered for 1st Inning.</span>
                   )}
                 </div>
               </div>
             </div>
             <div className="border-t pt-6">
-              <h3 className="text-lg font-semibold text-primary mb-2">{team2Name} - 2nd Inning</h3>
+              <h3 className="text-lg font-semibold text-primary mb-2">2nd Inning</h3>
               <p>Total Runs: <strong className="text-accent-foreground">{inning2Stats.runs}</strong></p>
               <p>Total Wickets: <strong className="text-accent-foreground">{inning2Stats.wickets}</strong></p>
               <div className="mt-3">
@@ -212,7 +196,7 @@ export default function ScoreScribePage() {
                       score.trim() !== "" && <span key={`inning2-detail-${index}`} className="p-1.5 bg-muted/70 rounded text-center shadow-sm">{score}</span>
                     ))
                   ) : (
-                    <span className="col-span-full text-center p-2 text-muted-foreground">No scores entered for {team2Name}.</span>
+                    <span className="col-span-full text-center p-2 text-muted-foreground">No scores entered for 2nd Inning.</span>
                   )}
                 </div>
               </div>
@@ -227,5 +211,4 @@ export default function ScoreScribePage() {
     </div>
   );
 }
-
     

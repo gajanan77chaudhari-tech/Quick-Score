@@ -12,7 +12,6 @@ interface InningColumnProps {
   scores: string[];
   onScoresUpdate: (scores: string[]) => void;
   inningStats: { runs: number; wickets: number };
-  teamName: string; // Added teamName prop
 }
 
 const SCORE_BOX_COUNT = 17;
@@ -28,19 +27,19 @@ function usePrevious<T>(value: T): T | undefined {
 
 const isValidInput = (val: string): boolean => {
   const trimmedVal = val.trim();
-  if (trimmedVal === '') return true; 
+  if (trimmedVal === '') return true;
   
   // Allows:
-  // - Number (runs): "0", "6", "10", "123"
+  // - Multi-digit Number (runs): "0", "6", "10", "123"
   // - 'W' (wicket)
-  // - Number + '/' + optional Number (runs/wickets): "4/", "4/1", "10/23"
-  // - '/' + Number (0 runs/wickets): "/1", "/10"
-  // - Also allows for partial inputs like "4/" or "/" to avoid premature error
+  // - Multi-digit Number + '/' + optional Multi-digit Number (runs/wickets): "4/", "4/1", "10/23", "150/2"
+  // - '/' + Multi-digit Number (0 runs/wickets): "/1", "/10"
+  // - Also allows for partial inputs like "4/" or "/" or "10/" to avoid premature error
   const regex = /^(\d*)$|^W$|^(\d*\/\d*)$|^(\/\d*)$/;
   return regex.test(trimmedVal);
 };
 
-export function InningColumn({ inningNumber, scores: initialScores, onScoresUpdate, inningStats, teamName }: InningColumnProps) {
+export function InningColumn({ inningNumber, scores: initialScores, onScoresUpdate, inningStats }: InningColumnProps) {
   const [inputValues, setInputValues] = useState<string[]>(() => 
     initialScores.length === SCORE_BOX_COUNT ? initialScores : Array(SCORE_BOX_COUNT).fill("")
   );
@@ -64,7 +63,6 @@ export function InningColumn({ inningNumber, scores: initialScores, onScoresUpda
 
   const handleInputChange = (index: number, value: string) => {
     const newValues = [...inputValues];
-    // No trim() here to allow spaces during typing, it's handled in validation/calculation
     const processedValue = value.toUpperCase().slice(0, MAX_INPUT_LENGTH);
     newValues[index] = processedValue;
     setInputValues(newValues);
@@ -72,22 +70,22 @@ export function InningColumn({ inningNumber, scores: initialScores, onScoresUpda
     const isValid = isValidInput(processedValue);
     const newErrors = [...inputErrors];
     // Show error only if not valid AND not empty (and not just a partially valid like "4/")
-    newErrors[index] = !isValid && processedValue.trim() !== '' && !/^\d+\/$/.test(processedValue.trim()) && !/^\/$/.test(processedValue.trim());
+    newErrors[index] = !isValid && processedValue.trim() !== '' && !/^\d*\/?$/.test(processedValue.trim());
     setInputErrors(newErrors);
 
-    onScoresUpdate(newValues);
+    onScoresUpdate(newValues.map(v => v.trim())); // Trim values before passing up
   };
 
   return (
-    <Card className="w-full md:w-auto md:min-w-[320px] shadow-lg bg-card dark:bg-card">
+    <Card className="w-full md:w-auto md:min-w-[320px] shadow-lg bg-blue-100 dark:bg-blue-900/70">
       <CardHeader>
-        <CardTitle className="text-primary">{teamName} - {inningNumber === 1 ? "1st Inning" : "2nd Inning"}</CardTitle>
+        <CardTitle className="text-primary">{inningNumber === 1 ? "1st Inning" : "2nd Inning"}</CardTitle>
       </CardHeader>
       <CardContent className="space-y-2">
         {Array.from({ length: SCORE_BOX_COUNT }).map((_, index) => (
           <div key={index} className="flex items-center gap-2">
             <label htmlFor={`inning-${inningNumber}-score-${index}`} className="sr-only">
-              {teamName} - Inning {inningNumber} - Score entry {index + 1}
+              Inning {inningNumber} - Score entry {index + 1}
             </label>
             <Input
               id={`inning-${inningNumber}-score-${index}`}
@@ -96,7 +94,7 @@ export function InningColumn({ inningNumber, scores: initialScores, onScoresUpda
               onChange={(e) => handleInputChange(index, e.target.value)}
               maxLength={MAX_INPUT_LENGTH}
               className={cn(
-                "h-9 w-36 text-center transition-colors duration-300", 
+                "h-9 w-48 text-center transition-colors duration-300", 
                 "bg-background dark:bg-slate-800", 
                 inputErrors[index] ? "border-destructive ring-destructive ring-1" : "focus:ring-ring"
               )}
@@ -116,8 +114,8 @@ export function InningColumn({ inningNumber, scores: initialScores, onScoresUpda
       <CardFooter>
         <p 
           className={cn(
-            "text-lg font-semibold transition-all duration-300 p-1 rounded",
-            highlightScore ? "bg-accent/30" : ""
+            "text-lg font-semibold transition-all duration-300 p-1 rounded text-primary-foreground dark:text-blue-100",
+            highlightScore ? "bg-accent/50 dark:bg-accent/70" : ""
           )}
         >
           Total: {inningStats.runs} runs, {inningStats.wickets} wickets
