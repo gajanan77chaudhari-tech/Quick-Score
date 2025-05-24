@@ -773,16 +773,15 @@ export default function ScoreScribePage() {
   const [inning1Scores, setInning1Scores] = useState<string[]>(Array(SCORE_BOX_COUNT).fill(""));
   const [inning2Scores, setInning2Scores] = useState<string[]>(Array(SCORE_BOX_COUNT).fill(""));
   
-  // New state for event details
   const [inning1EventDetails, setInning1EventDetails] = useState<string[]>(Array(SCORE_BOX_COUNT).fill(""));
   const [inning2EventDetails, setInning2EventDetails] = useState<string[]>(Array(SCORE_BOX_COUNT).fill(""));
 
-  const [teamName, setTeamName] = useState<string>(""); // This is the top-level team name for the match/page title
+  const [teamName, setTeamName] = useState<string>(""); 
   const [teamNameInputBgColor, setTeamNameInputBgColor] = useState<string>("");
 
 
-  const inning1Stats = useMemo(() => calculateTotalStats(inning1Scores), [inning1Scores]);
-  const inning2Stats = useMemo(() => calculateTotalStats(inning2Scores), [inning2Scores]);
+  const inning1Stats = useMemo(() => calculateTotalStats(inning1Scores, inning1EventDetails, teamName), [inning1Scores, inning1EventDetails, teamName]);
+  const inning2Stats = useMemo(() => calculateTotalStats(inning2Scores, inning2EventDetails, teamName), [inning2Scores, inning2EventDetails, teamName]);
 
   const handleResetGame = () => {
     setTeamName("");
