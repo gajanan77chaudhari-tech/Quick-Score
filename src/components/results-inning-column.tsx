@@ -15,9 +15,10 @@ interface ResultsInningColumnProps {
 
 export function ResultsInningColumn({ inningNumber, teamName, scores }: ResultsInningColumnProps) {
   const inningLabel = inningNumber === 1 ? "1st Inning" : "2nd Inning";
-  const trimmedTeamName = teamName.trim(); // Trim to handle names with only spaces
+  // Trim the team name to handle names with only spaces or if it's an empty string
+  const trimmedTeamName = teamName.trim(); 
   
-  // Conditionally create the card title
+  // Conditionally create the card title based on whether a team name is present
   const cardTitle = trimmedTeamName ? `${trimmedTeamName} - ${inningLabel}` : inningLabel;
 
   const processedScores = scores.map(score => ({
@@ -60,5 +61,3 @@ export function ResultsInningColumn({ inningNumber, teamName, scores }: ResultsI
     </Card>
   );
 }
-
-    

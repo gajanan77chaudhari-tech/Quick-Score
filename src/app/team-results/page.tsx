@@ -21,16 +21,17 @@ function TeamResultsContent() {
 
   try {
     if (scores1String) {
-      inning1Scores = JSON.parse(scores1String);
+      inning1Scores = JSON.parse(decodeURIComponent(scores1String));
     }
     if (scores2String) {
-      inning2Scores = JSON.parse(scores2String);
+      inning2Scores = JSON.parse(decodeURIComponent(scores2String));
     }
   } catch (error) {
     console.error("Error parsing scores JSON:", error);
     // Handle error or set default empty scores
   }
 
+  // Use the team name from the URL for display. If it's empty or just spaces, use an empty string.
   const displayTeamName = teamNameFromUrl?.trim() || "";
   const pageTitle = displayTeamName ? `${displayTeamName} - Scorecard` : "Scorecard";
 
@@ -51,13 +52,13 @@ function TeamResultsContent() {
       <main className="flex flex-col md:flex-row gap-6 md:gap-8 w-full items-start justify-center">
         <ResultsInningColumn
           inningNumber={1}
-          teamName={displayTeamName} // Pass the potentially empty (after trim) team name
-          scores={inning1Scores}
+          teamName={displayTeamName} // Pass the processed team name
+          scores={inning1Scores}     // Data from 1st inning inputs
         />
         <ResultsInningColumn
           inningNumber={2}
-          teamName={displayTeamName} // Pass the same team name
-          scores={inning2Scores}
+          teamName={displayTeamName} // Pass the processed team name
+          scores={inning2Scores}     // Data from 2nd inning inputs
         />
       </main>
       
@@ -76,5 +77,3 @@ export default function TeamResultsPage() {
     </Suspense>
   );
 }
-
-    
