@@ -39,7 +39,7 @@ const calculateInningStats = (scores: string[]): { runs: number; wickets: number
 export default function ScoreScribePage() {
   const [inning1Scores, setInning1Scores] = useState<string[]>(Array(SCORE_BOX_COUNT).fill(""));
   const [inning2Scores, setInning2Scores] = useState<string[]>(Array(SCORE_BOX_COUNT).fill(""));
-  const [teamName, setTeamName] = useState<string>("Team Name"); 
+  const [teamName, setTeamName] = useState<string>(""); 
   
   const inning1Stats = useMemo(() => calculateInningStats(inning1Scores), [inning1Scores]);
   const inning2Stats = useMemo(() => calculateInningStats(inning2Scores), [inning2Scores]);
@@ -54,7 +54,10 @@ export default function ScoreScribePage() {
             placeholder="Enter Team Name"
             value={teamName}
             onChange={(e) => setTeamName(e.target.value)}
-            className="text-center text-lg border-primary focus:ring-primary"
+            className={cn(
+              "text-center text-2xl font-semibold text-accent bg-accent/10 dark:bg-accent/20 border-primary focus:ring-primary placeholder:text-muted-foreground/70",
+              "w-full max-w-xs mx-auto" 
+            )}
             aria-label="Team Name"
           />
         </div>
