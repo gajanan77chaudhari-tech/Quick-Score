@@ -15,7 +15,7 @@ interface InningColumnProps {
 }
 
 const SCORE_BOX_COUNT = 17;
-const MAX_INPUT_LENGTH = 4; // Allows for "R/WW" e.g., "6/10"
+const MAX_INPUT_LENGTH = 10; // Increased max input length
 
 // Custom hook to get the previous value of a prop or state
 function usePrevious<T>(value: T): T | undefined {
@@ -27,13 +27,13 @@ function usePrevious<T>(value: T): T | undefined {
 }
 
 const isValidInput = (val: string): boolean => {
-  if (val === '') return true;
-  // No need to call toUpperCase() here as it's done in handleInputChange
+  if (val === '') return true; // Empty is valid
   // Allows:
-  // - Single digit 0-6
-  // - 'W'
-  // - Digit (0-6) + '/' + zero or more Digits (e.g., 4/, 4/1, 0/12)
-  const regex = /^([0-6])$|^W$|^([0-6])\/(\d*)$/; // Changed \d+ to \d* to allow "R/" as valid intermediate
+  // - Number (runs): "0", "6", "10", "123"
+  // - 'W' (wicket)
+  // - Number + '/' + optional Number (runs/wickets): "4/", "4/1", "10/23"
+  // - '/' + Number (0 runs/wickets): "/1", "/10"
+  const regex = /^(\d+)$|^W$|^(\d+\/\d*)$|^(\/\d+)$/;
   return regex.test(val);
 };
 
@@ -61,27 +61,20 @@ export function InningColumn({ inningNumber, scores: initialScores, onScoresUpda
 
   const handleInputChange = (index: number, value: string) => {
     const newValues = [...inputValues];
-    // Uppercase, trim, then slice
     const processedValue = value.toUpperCase().trim().slice(0, MAX_INPUT_LENGTH);
     newValues[index] = processedValue;
     setInputValues(newValues);
 
     const isValid = isValidInput(processedValue);
     const newErrors = [...inputErrors];
-    // An empty processedValue is valid (clearing the input), but don't show error for it
-    // Show error if not valid AND not empty.
-    // Also, if it ends with just a slash (e.g., "4/"), it's a valid partial input for typing,
-    // but not a "complete" entry for calculation (calculateInningStats handles this).
-    // We only mark as error if it's invalid *and* not empty.
-    // "4/" will pass isValidInput now, so it won't be marked as error.
     newErrors[index] = !isValid && processedValue !== '';
     setInputErrors(newErrors);
 
-    onScoresUpdate(newValues); // Pass the array which contains the processed value
+    onScoresUpdate(newValues);
   };
 
   return (
-    <Card className="w-full md:w-auto md:min-w-[300px] shadow-lg bg-blue-500/30 dark:bg-blue-700/50">
+    <Card className="w-full md:w-auto md:min-w-[300px] shadow-lg bg-blue-500/50 dark:bg-blue-700/70">
       <CardHeader>
         <CardTitle className="text-primary">{inningNumber === 1 ? "1st Inning" : "2nd Inning"}</CardTitle>
       </CardHeader>
@@ -98,7 +91,7 @@ export function InningColumn({ inningNumber, scores: initialScores, onScoresUpda
               onChange={(e) => handleInputChange(index, e.target.value)}
               maxLength={MAX_INPUT_LENGTH}
               className={cn(
-                "h-9 w-20 text-center transition-colors duration-300",
+                "h-9 w-32 text-center transition-colors duration-300", // Increased width to w-32
                 "bg-background dark:bg-slate-900", 
                 inputErrors[index] ? "border-destructive ring-destructive ring-1" : "focus:ring-ring"
               )}

@@ -19,23 +19,21 @@ const calculateInningStats = (scores: string[]): { runs: number; wickets: number
 
     if (s.includes('/')) {
       const parts = s.split('/');
-      if (parts.length === 2) {
-        const runPart = parts[0];
-        const wicketPart = parts[1];
-        
-        if (/^[0-6]$/.test(runPart)) {
-          runs += parseInt(runPart, 10);
-        }
-        if (/^\d+$/.test(wicketPart)) {
-          const wicketCount = parseInt(wicketPart, 10);
-          if (wicketCount > 0) {
-             wickets += wicketCount;
-          }
+      const runPart = parts[0];
+      const wicketPart = parts[1];
+      
+      if (runPart && /^\d+$/.test(runPart)) {
+        runs += parseInt(runPart, 10);
+      }
+      if (wicketPart && /^\d+$/.test(wicketPart)) {
+        const wicketCount = parseInt(wicketPart, 10);
+        if (wicketCount > 0) {
+           wickets += wicketCount;
         }
       }
     } else if (s === 'W') {
       wickets += 1;
-    } else if (/^[0-6]$/.test(s)) {
+    } else if (/^\d+$/.test(s)) { // Allows multi-digit runs directly
       runs += parseInt(s, 10);
     }
   });
@@ -91,7 +89,7 @@ export default function ScoreScribePage() {
       <header className="text-center">
         <h1 className="text-4xl sm:text-5xl font-bold text-primary">ScoreScribe</h1>
         <p className="text-muted-foreground mt-1 sm:mt-2 text-sm sm:text-base">
-          Enter scores per ball: 0-6 (runs), W (wicket), or Runs/Wickets (e.g., 4/1).
+          Enter scores: numbers for runs (e.g., 6, 10), W for wicket, or Runs/Wickets (e.g., 4/1, 10/2). Max 10 chars.
         </p>
       </header>
 
