@@ -38,13 +38,15 @@ export function InningColumn({
     if (JSON.stringify(initialScores) !== JSON.stringify(scoreInputValues)) {
        setScoreInputValues(initialScores.length === SCORE_BOX_COUNT ? initialScores : Array(SCORE_BOX_COUNT).fill(""));
     }
-  }, [initialScores, scoreInputValues]);
+  // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [initialScores]);
 
   useEffect(() => {
     if (JSON.stringify(initialEventDetails) !== JSON.stringify(detailInputValues)) {
       setDetailInputValues(initialEventDetails.length === SCORE_BOX_COUNT ? initialEventDetails : Array(SCORE_BOX_COUNT).fill(""));
     }
-  }, [initialEventDetails, detailInputValues]);
+  // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [initialEventDetails]);
 
 
   const handleScoreInputChange = (index: number, value: string) => {
