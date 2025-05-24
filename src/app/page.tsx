@@ -19,7 +19,6 @@ import { ScrollArea } from "@/components/ui/scroll-area";
 
 
 const SCORE_BOX_COUNT = 17;
-const MAX_INPUT_LENGTH = 10;
 
 const calculateInningStats = (scores: string[]): { runs: number; wickets: number } => {
   let runs = 0;
@@ -29,20 +28,23 @@ const calculateInningStats = (scores: string[]): { runs: number; wickets: number
     if (!s) return;
 
     if (s.includes('/')) {
-      const parts = s.split('/');
-      const runPart = parts[0].trim();
-      const wicketPart = parts[1].trim();
+      const parts = s.split('/', 2); // Limit split to 2 parts
+      const runStr = parts[0].replace(/[^0-9]/g, ""); // Extract only digits
+      const wicketStr = parts[1].replace(/[^0-9]/g, ""); // Extract only digits
       
-      if (runPart && /^\d+$/.test(runPart)) {
-        runs += parseInt(runPart, 10);
+      if (runStr) {
+        runs += parseInt(runStr, 10);
       }
-      if (wicketPart && /^\d+$/.test(wicketPart)) {
-        wickets += parseInt(wicketPart, 10);
+      if (wicketStr) {
+        wickets += parseInt(wicketStr, 10);
       }
-    } else if (s === 'W') {
-      wickets += 1;
-    } else if (/^\d+$/.test(s)) {
-      runs += parseInt(s, 10);
+    } else {
+      const runStr = s.replace(/[^0-9]/g, ""); // Extract only digits
+      if (runStr) {
+        runs += parseInt(runStr, 10);
+      }
+      const wicketCountFromW = (s.match(/W/g) || []).length; // Count 'W's
+      wickets += wicketCountFromW;
     }
   });
   return { runs, wickets };
@@ -781,7 +783,7 @@ const parseColorList = (list: string): { name: string; hex: string }[] => {
     .trim()
     .split('\n')
     .map(line => {
-      const parts = line.split(/\s+/); // Split by one or more spaces (handles tabs too)
+      const parts = line.split(/\s+/); 
       if (parts.length >= 2) {
         const hex = parts[0];
         const name = parts.slice(1).join(' ');
@@ -801,7 +803,8 @@ const extensiveColorOptions = parseColorList(userColorList);
 export default function ScoreScribePage() {
   const [inning1Scores, setInning1Scores] = useState<string[]>(Array(SCORE_BOX_COUNT).fill(""));
   const [inning2Scores, setInning2Scores] = useState<string[]>(Array(SCORE_BOX_COUNT).fill(""));
-  const [teamName, setTeamName] = useState<string>("");
+  const [inning1TeamName, setInning1TeamName] = useState<string>("");
+  const [inning2TeamName, setInning2TeamName] = useState<string>("");
   const [teamNameInputBgColor, setTeamNameInputBgColor] = useState<string>(""); // Stores hex string
 
 
@@ -809,10 +812,11 @@ export default function ScoreScribePage() {
   const inning2Stats = useMemo(() => calculateInningStats(inning2Scores), [inning2Scores]);
 
   const handleResetGame = () => {
-    setTeamName("");
+    setInning1TeamName("");
+    setInning2TeamName("");
     setInning1Scores(Array(SCORE_BOX_COUNT).fill(""));
     setInning2Scores(Array(SCORE_BOX_COUNT).fill(""));
-    setTeamNameInputBgColor(""); // Reset background color
+    setTeamNameInputBgColor(""); 
   };
 
   return (
@@ -834,44 +838,54 @@ export default function ScoreScribePage() {
       </div>
 
       <header className="text-center w-full mt-12 sm:mt-10 md:mt-8">
-        <div className="mt-4 relative flex items-center justify-center md:max-w-md lg:max-w-lg mx-auto group">
+        <div className="flex flex-col sm:flex-row gap-4 items-center justify-center mb-6 md:max-w-2xl lg:max-w-3xl mx-auto">
+          <div className="relative flex items-center justify-center group w-full sm:w-1/2">
+            <Input
+              type="text"
+              placeholder="Team 1 Name (Batting 1st)"
+              value={inning1TeamName}
+              onChange={(e) => setInning1TeamName(e.target.value)}
+              className={cn(
+                "text-center text-xl font-semibold text-foreground placeholder:text-muted-foreground/70",
+                "flex-grow py-2",
+                !teamNameInputBgColor && "bg-accent/10 dark:bg-accent/20",
+                "border-primary focus:ring-primary rounded-md"
+              )}
+              style={{ backgroundColor: teamNameInputBgColor || undefined }}
+              aria-label="Team 1 Name"
+            />
+             <DropdownMenu>
+              <DropdownMenuTrigger asChild>
+                <Button variant="ghost" size="icon" className="ml-2 shrink-0" aria-label="Change team name background color">
+                  <Palette className="h-5 w-5" />
+                </Button>
+              </DropdownMenuTrigger>
+              <DropdownMenuContent align="end" className="max-h-96">
+                <ScrollArea className="h-[300px] w-[250px] p-2">
+                  <DropdownMenuItem onClick={() => setTeamNameInputBgColor("")} className="cursor-pointer">
+                    <div className={cn("w-4 h-4 mr-2 rounded-sm border", !teamNameInputBgColor ? "bg-accent/10 dark:bg-accent/20" : "bg-background")}></div>
+                    <span>Default</span>
+                  </DropdownMenuItem>
+                  <DropdownMenuSeparator />
+                  <DropdownMenuLabel>Colors</DropdownMenuLabel>
+                  {extensiveColorOptions.map((option) => (
+                    <DropdownMenuItem key={option.hex} onClick={() => setTeamNameInputBgColor(option.hex)} className="cursor-pointer">
+                      <div className="w-4 h-4 mr-2 rounded-sm border" style={{ backgroundColor: option.hex }}></div>
+                      <span>{option.name}</span>
+                    </DropdownMenuItem>
+                  ))}
+                </ScrollArea>
+              </DropdownMenuContent>
+            </DropdownMenu>
+          </div>
           <Input
             type="text"
-            placeholder="Enter Team Name"
-            value={teamName}
-            onChange={(e) => setTeamName(e.target.value)}
-            className={cn(
-              "text-center text-3xl font-semibold text-foreground placeholder:text-muted-foreground/70",
-              "flex-grow py-2",
-              !teamNameInputBgColor && "bg-accent/10 dark:bg-accent/20", // Default background if no custom color
-              "border-primary focus:ring-primary rounded-md"
-            )}
-            style={{ backgroundColor: teamNameInputBgColor || undefined }}
-            aria-label="Team Name"
+            placeholder="Team 2 Name (Batting 2nd)"
+            value={inning2TeamName}
+            onChange={(e) => setInning2TeamName(e.target.value)}
+            className="text-center text-xl font-semibold text-foreground placeholder:text-muted-foreground/70 bg-accent/10 dark:bg-accent/20 border-primary focus:ring-primary rounded-md py-2 w-full sm:w-1/2"
+            aria-label="Team 2 Name"
           />
-          <DropdownMenu>
-            <DropdownMenuTrigger asChild>
-              <Button variant="ghost" size="icon" className="ml-2 shrink-0" aria-label="Change team name background color">
-                <Palette className="h-5 w-5" />
-              </Button>
-            </DropdownMenuTrigger>
-            <DropdownMenuContent align="end" className="max-h-96"> {/* Added max-h for scrollability */}
-              <ScrollArea className="h-[300px] w-[250px] p-2"> {/* ScrollArea for the list */}
-                <DropdownMenuItem onClick={() => setTeamNameInputBgColor("")} className="cursor-pointer">
-                  <div className={cn("w-4 h-4 mr-2 rounded-sm border", !teamNameInputBgColor ? "bg-accent/10 dark:bg-accent/20" : "bg-background")}></div>
-                  <span>Default</span>
-                </DropdownMenuItem>
-                <DropdownMenuSeparator />
-                <DropdownMenuLabel>Colors</DropdownMenuLabel>
-                {extensiveColorOptions.map((option) => (
-                  <DropdownMenuItem key={option.hex} onClick={() => setTeamNameInputBgColor(option.hex)} className="cursor-pointer">
-                    <div className="w-4 h-4 mr-2 rounded-sm border" style={{ backgroundColor: option.hex }}></div>
-                    <span>{option.name}</span>
-                  </DropdownMenuItem>
-                ))}
-              </ScrollArea>
-            </DropdownMenuContent>
-          </DropdownMenu>
         </div>
       </header>
 
@@ -881,12 +895,14 @@ export default function ScoreScribePage() {
           scores={inning1Scores}
           onScoresUpdate={setInning1Scores}
           inningStats={inning1Stats}
+          inningTeamName={inning1TeamName}
         />
         <InningColumn
           inningNumber={2}
           scores={inning2Scores}
           onScoresUpdate={setInning2Scores}
           inningStats={inning2Stats}
+          inningTeamName={inning2TeamName}
         />
       </main>
       
@@ -896,3 +912,5 @@ export default function ScoreScribePage() {
     </div>
   );
 }
+
+    

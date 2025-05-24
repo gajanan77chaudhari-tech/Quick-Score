@@ -4,7 +4,6 @@
 import React, { useState, useEffect } from "react";
 import { Input } from "@/components/ui/input";
 import { Card, CardContent, CardFooter, CardHeader, CardTitle } from "@/components/ui/card";
-import { AlertCircle } from "lucide-react";
 import { cn } from "@/lib/utils";
 
 interface InningColumnProps {
@@ -12,24 +11,16 @@ interface InningColumnProps {
   scores: string[];
   onScoresUpdate: (scores: string[]) => void;
   inningStats: { runs: number; wickets: number };
+  inningTeamName: string;
 }
 
 const SCORE_BOX_COUNT = 17;
 const MAX_INPUT_LENGTH = 10; 
 
-const isValidInput = (val: string): boolean => {
-  const trimmedVal = val.trim();
-  if (trimmedVal === '') return true;
-  
-  const regex = /^(\d{1,3})$|^W$|^(\d{0,3}\/\d{0,2})$|^(\/\d{1,2})$|^(\d+\/)$/; // Allow "4/" or "/1"
-  return regex.test(trimmedVal);
-};
-
-export function InningColumn({ inningNumber, scores: initialScores, onScoresUpdate, inningStats }: InningColumnProps) {
+export function InningColumn({ inningNumber, scores: initialScores, onScoresUpdate, inningStats, inningTeamName }: InningColumnProps) {
   const [inputValues, setInputValues] = useState<string[]>(() => 
     initialScores.length === SCORE_BOX_COUNT ? initialScores : Array(SCORE_BOX_COUNT).fill("")
   );
-  const [inputErrors, setInputErrors] = useState<boolean[]>(Array(SCORE_BOX_COUNT).fill(false));
 
   useEffect(() => {
     setInputValues(initialScores.length === SCORE_BOX_COUNT ? initialScores : Array(SCORE_BOX_COUNT).fill(""));
@@ -37,21 +28,16 @@ export function InningColumn({ inningNumber, scores: initialScores, onScoresUpda
 
   const handleInputChange = (index: number, value: string) => {
     const newValues = [...inputValues];
-    const processedValue = value.toUpperCase().slice(0, MAX_INPUT_LENGTH);
+    // Allow any character, enforce max length
+    const processedValue = value.slice(0, MAX_INPUT_LENGTH); 
     newValues[index] = processedValue;
     setInputValues(newValues);
-
-    const isValid = isValidInput(processedValue.replace(/\s/g, '')); // Validate after removing spaces
-    const newErrors = [...inputErrors];
-    // Show error only if it's not empty, not valid, and not a partial valid input (like "4/" or "/1")
-    newErrors[index] = processedValue.trim() !== '' && !isValid && !/^\d*\/?\d*$/.test(processedValue.trim());
-    setInputErrors(newErrors);
-
-    onScoresUpdate(newValues.map(v => v.trim().replace(/\s/g, '')));
+    // Pass the raw (but length-limited) value for calculation
+    onScoresUpdate(newValues); 
   };
 
   const inningLabel = inningNumber === 1 ? "1st Inning" : "2nd Inning";
-  const cardTitle = inningLabel;
+  const cardTitle = inningTeamName ? `${inningTeamName} - ${inningLabel}` : inningLabel;
 
   return (
     <Card className="w-full md:w-auto md:min-w-[350px] shadow-lg bg-blue-700 dark:bg-blue-800">
@@ -72,19 +58,10 @@ export function InningColumn({ inningNumber, scores: initialScores, onScoresUpda
               maxLength={MAX_INPUT_LENGTH}
               className={cn(
                 "h-9 w-full text-center transition-colors duration-300 text-base md:text-sm", 
-                "bg-background dark:bg-slate-800 text-foreground dark:text-gray-100", 
-                inputErrors[index] ? "border-destructive ring-destructive ring-1" : "focus:ring-ring"
+                "bg-background dark:bg-slate-800 text-foreground dark:text-gray-100",
+                "focus:ring-ring" // Simplified: no more specific error styling here
               )}
-              aria-invalid={inputErrors[index]}
-              aria-describedby={inputErrors[index] ? `inning-${inningNumber}-error-${index}` : undefined}
             />
-            {inputErrors[index] && (
-              <AlertCircle 
-                id={`inning-${inningNumber}-error-${index}`} 
-                className="h-5 w-5 text-destructive" 
-                aria-label="Invalid input" 
-              />
-            )}
           </div>
         ))}
       </CardContent>
@@ -96,3 +73,5 @@ export function InningColumn({ inningNumber, scores: initialScores, onScoresUpda
     </Card>
   );
 }
+
+    
