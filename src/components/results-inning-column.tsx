@@ -9,42 +9,43 @@ import { cn } from "@/lib/utils";
 
 interface ResultsInningColumnProps {
   inningNumber: 1 | 2;
-  teamName: string; // Will receive the team name, possibly empty
+  teamName: string; 
   scores: string[];
 }
 
 export function ResultsInningColumn({ inningNumber, teamName, scores }: ResultsInningColumnProps) {
   const inningLabel = inningNumber === 1 ? "1st Inning" : "2nd Inning";
-  // Trim the team name to handle names with only spaces or if it's an empty string
   const trimmedTeamName = teamName.trim(); 
-  
-  // Conditionally create the card title based on whether a team name is present
   const cardTitle = trimmedTeamName ? `${trimmedTeamName} - ${inningLabel}` : inningLabel;
 
-  const processedScores = scores.map(score => ({
+  const processedScores = scores.map((score, index) => ({
+    id: `score-${inningNumber}-${index}`, // Unique key for React list
     original: score,
     parsed: parseSingleScoreEntry(score),
-  })).filter(s => s.original.trim() !== ""); // Filter out empty original entries for display
+  })).filter(s => s.original.trim() !== ""); 
 
   const inningStats = calculateTotalStats(scores);
 
   return (
     <Card className={cn(
         "w-full md:w-auto md:min-w-[350px] shadow-lg",
-        "bg-blue-700 dark:bg-blue-800" // Matching InningColumn style
+        "bg-blue-700 dark:bg-blue-800" 
       )}>
       <CardHeader>
         <CardTitle className="text-gray-100">{cardTitle}</CardTitle>
       </CardHeader>
       <CardContent>
-        <ScrollArea className="h-[300px] pr-3"> {/* Adjust height as needed */}
+        <ScrollArea className="h-[300px] pr-3"> 
           {processedScores.length > 0 ? (
             <ul className="space-y-2">
               {processedScores.map((scoreData, index) => (
-                <li key={index} className="p-2 rounded-md bg-background/20 dark:bg-slate-700/30 text-sm text-gray-200 dark:text-gray-300">
+                <li key={scoreData.id} className="p-2 rounded-md bg-background/20 dark:bg-slate-700/30 text-sm text-gray-200 dark:text-gray-300">
                   <span className="font-medium">Entry {index + 1}:</span> "{scoreData.original}"
                   <br />
-                  <span className="ml-4 font-light">➔ {scoreData.parsed.runs} Runs, {scoreData.parsed.wickets} Wickets</span>
+                  <span className="ml-4 font-light">
+                    ➔ {scoreData.parsed.runs} Runs, {scoreData.parsed.wickets} Wickets 
+                    ({scoreData.parsed.isLegalDelivery ? "Legal Ball" : "Not a Legal Ball"})
+                  </span>
                 </li>
               ))}
             </ul>
@@ -55,7 +56,7 @@ export function ResultsInningColumn({ inningNumber, teamName, scores }: ResultsI
       </CardContent>
       <CardFooter>
         <p className="text-lg font-semibold text-foreground">
-          Total: {inningStats.runs} runs, {inningStats.wickets} wickets
+          Total: {inningStats.runs} runs, {inningStats.wickets} wickets in {inningStats.overs} overs
         </p>
       </CardFooter>
     </Card>

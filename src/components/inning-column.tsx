@@ -10,8 +10,7 @@ interface InningColumnProps {
   inningNumber: 1 | 2;
   scores: string[];
   onScoresUpdate: (scores: string[]) => void;
-  inningStats: { runs: number; wickets: number };
-  // teamName?: string; // Removed as per last request to fix titles
+  inningStats: { runs: number; wickets: number; balls: number; overs: string };
 }
 
 const SCORE_BOX_COUNT = 17;
@@ -23,20 +22,22 @@ export function InningColumn({ inningNumber, scores: initialScores, onScoresUpda
   );
 
   useEffect(() => {
-    setInputValues(initialScores.length === SCORE_BOX_COUNT ? initialScores : Array(SCORE_BOX_COUNT).fill(""));
-  }, [initialScores]);
+    // Ensure inputValues always reflects the prop, especially on reset or external changes.
+    // Only update if initialScores is genuinely different to avoid unnecessary re-renders or cursor jumps.
+    if (JSON.stringify(initialScores) !== JSON.stringify(inputValues)) {
+       setInputValues(initialScores.length === SCORE_BOX_COUNT ? initialScores : Array(SCORE_BOX_COUNT).fill(""));
+    }
+  }, [initialScores]); // Removed inputValues from dependency array
 
   const handleInputChange = (index: number, value: string) => {
     const newValues = [...inputValues];
-    // No specific validation, just ensure length limit and pass through
-    newValues[index] = value.slice(0, MAX_INPUT_LENGTH);
+    newValues[index] = value.slice(0, MAX_INPUT_LENGTH); // Enforce max length
     setInputValues(newValues);
     onScoresUpdate(newValues); 
   };
 
   const inningLabel = inningNumber === 1 ? "1st Inning" : "2nd Inning";
-  // const cardTitle = teamName ? `${teamName} - ${inningLabel}` : inningLabel;
-  const cardTitle = inningLabel; // Title is now fixed
+  const cardTitle = inningLabel; 
 
   return (
     <Card className={cn(
@@ -69,7 +70,7 @@ export function InningColumn({ inningNumber, scores: initialScores, onScoresUpda
       </CardContent>
       <CardFooter>
         <p className="text-lg font-semibold p-1 rounded text-foreground">
-          Total: {inningStats.runs} runs, {inningStats.wickets} wickets
+          Total: {inningStats.runs} runs, {inningStats.wickets} wickets in {inningStats.overs} overs
         </p>
       </CardFooter>
     </Card>

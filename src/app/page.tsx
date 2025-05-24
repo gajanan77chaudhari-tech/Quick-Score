@@ -20,7 +20,7 @@ import { ScrollArea } from "@/components/ui/scroll-area";
 import { calculateTotalStats } from "@/lib/score-parser";
 
 
-const SCORE_BOX_COUNT = 17;
+const SCORE_BOX_COUNT = 17; // Represents events/balls per inning
 
 const userColorList = `
 #000000	Black (W3C)
@@ -789,7 +789,7 @@ export default function ScoreScribePage() {
   };
   
   const handleViewScorecard = () => {
-    if (typeof window !== "undefined") { // Ensure window is defined (client-side)
+    if (typeof window !== "undefined") { 
       const scores1String = JSON.stringify(inning1Scores);
       const scores2String = JSON.stringify(inning2Scores);
       router.push(
@@ -870,14 +870,12 @@ export default function ScoreScribePage() {
           scores={inning1Scores}
           onScoresUpdate={setInning1Scores}
           inningStats={inning1Stats}
-          // teamName={teamName} // Removed, as titles are fixed
         />
         <InningColumn
           inningNumber={2}
           scores={inning2Scores}
           onScoresUpdate={setInning2Scores}
           inningStats={inning2Stats}
-          // teamName="" // Second inning does not use the main team name for its title
         />
       </main>
       
@@ -887,5 +885,3 @@ export default function ScoreScribePage() {
     </div>
   );
 }
-
-    

@@ -1,58 +1,74 @@
 
 /**
  * @fileOverview Utility functions for parsing cricket score entries.
- * - parseSingleScoreEntry: Parses a single score string into runs and wickets.
- * - calculateTotalStats: Calculates total runs and wickets from an array of score strings.
+ * - parseSingleScoreEntry: Parses a single score string into runs, wickets, and determines if it's a legal delivery.
+ * - calculateTotalStats: Calculates total runs, wickets, legal balls, and overs from an array of score strings.
  */
 
-export const parseSingleScoreEntry = (scoreEntry: string): { runs: number; wickets: number } => {
-  let runs = 0;
-  let wickets = 0;
-  const s = scoreEntry.toUpperCase().trim().replace(/\s/g, ''); // Remove all spaces
+export const parseSingleScoreEntry = (scoreEntry: string): { runs: number; wickets: number; isLegalDelivery: boolean } => {
+  let parsedRuns = 0;
+  let parsedWickets = 0;
+  const s = scoreEntry.toUpperCase().trim();
 
-  if (!s) return { runs: 0, wickets: 0 };
+  if (!s) return { runs: 0, wickets: 0, isLegalDelivery: false };
 
-  if (s.includes('/')) {
-    const parts = s.split('/', 2);
+  const isNoBall = s.includes("NB");
+  const isWide = s.includes("WD");
+  const isLegalDelivery = !(isNoBall || isWide);
+
+  const cleanScoreEntryForParsing = s.replace(/\s/g, ''); // Remove all internal spaces
+
+  if (cleanScoreEntryForParsing.includes('/')) {
+    const parts = cleanScoreEntryForParsing.split('/', 2);
     const runsPart = parts[0];
     const wicketsPart = parts[1];
 
-    // Extract runs from before the slash
     const extractedRuns = runsPart.replace(/[^0-9]/g, "");
     if (extractedRuns) {
-      runs += parseInt(extractedRuns, 10);
+      parsedRuns += parseInt(extractedRuns, 10);
     }
-    // Count 'W's as wickets from before the slash
-    wickets += (runsPart.match(/W/g) || []).length;
+    parsedWickets += (runsPart.match(/W/g) || []).length;
 
-    // Extract wicket numbers from after the slash
     const extractedWickets = wicketsPart.replace(/[^0-9]/g, "");
     if (extractedWickets) {
-      wickets += parseInt(extractedWickets, 10);
+      parsedWickets += parseInt(extractedWickets, 10);
     }
-    // Count 'W's as wickets from after the slash
-    wickets += (wicketsPart.match(/W/g) || []).length;
+    parsedWickets += (wicketsPart.match(/W/g) || []).length;
     
   } else { // No slash
-    // Extract all numbers as runs
-    const extractedRuns = s.replace(/[^0-9]/g, "");
+    const extractedRuns = cleanScoreEntryForParsing.replace(/[^0-9]/g, "");
     if (extractedRuns) {
-      runs += parseInt(extractedRuns, 10);
+      parsedRuns += parseInt(extractedRuns, 10);
     }
-    // Count all 'W's as wickets
-    wickets += (s.match(/W/g) || []).length;
+    parsedWickets += (cleanScoreEntryForParsing.match(/W/g) || []).length;
   }
-  return { runs, wickets };
+
+  let finalRuns = parsedRuns;
+  if (isWide) finalRuns += 1;  // Add 1 run for a wide delivery
+  if (isNoBall) finalRuns +=1; // Add 1 run for a no-ball delivery
+
+  return { runs: finalRuns, wickets: parsedWickets, isLegalDelivery };
 };
 
-export const calculateTotalStats = (scores: string[]): { runs: number; wickets: number } => {
+export const calculateTotalStats = (scores: string[]): { runs: number; wickets: number; balls: number; overs: string } => {
   let totalRuns = 0;
   let totalWickets = 0;
+  let totalLegalBalls = 0;
+
   scores.forEach(scoreEntry => {
-    if (scoreEntry.trim() === "") return; // Skip empty entries for total calculation
+    // Process non-empty entries. parseSingleScoreEntry handles internal trimming.
+    if (scoreEntry.trim() === "") return; 
     const parsed = parseSingleScoreEntry(scoreEntry);
     totalRuns += parsed.runs;
     totalWickets += parsed.wickets;
+    if (parsed.isLegalDelivery) {
+      totalLegalBalls += 1;
+    }
   });
-  return { runs: totalRuns, wickets: totalWickets };
+
+  const fullOvers = Math.floor(totalLegalBalls / 6);
+  const ballsInCurrentOver = totalLegalBalls % 6;
+  const oversString = `${fullOvers}.${ballsInCurrentOver}`;
+
+  return { runs: totalRuns, wickets: totalWickets, balls: totalLegalBalls, overs: oversString };
 };
