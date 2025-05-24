@@ -62,7 +62,7 @@ export function InningColumn({ inningNumber, scores: initialScores, onScoresUpda
   };
 
   return (
-    <Card className="w-full md:w-auto md:min-w-[300px] shadow-lg bg-blue-100 dark:bg-blue-900/30">
+    <Card className="w-full md:w-auto md:min-w-[300px] shadow-lg bg-blue-200 dark:bg-blue-800/40">
       <CardHeader>
         <CardTitle className="text-primary">{inningNumber === 1 ? "1st Inning" : "2nd Inning"}</CardTitle>
       </CardHeader>
