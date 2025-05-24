@@ -35,7 +35,8 @@ const isValidInput = (val: string): boolean => {
   // - Multi-digit Number + '/' + optional Multi-digit Number (runs/wickets): "4/", "4/1", "10/23", "150/2"
   // - '/' + Multi-digit Number (0 runs/wickets): "/1", "/10"
   // - Also allows for partial inputs like "4/" or "/" or "10/" to avoid premature error
-  const regex = /^(\d*)$|^W$|^(\d*\/\d*)$|^(\/\d*)$/;
+  // - Allows multi-digit runs and wickets like "120/3"
+  const regex = /^(\d{1,3})$|^W$|^(\d{0,3}\/\d{0,2})$|^(\/\d{1,2})$/;
   return regex.test(trimmedVal);
 };
 
@@ -77,9 +78,9 @@ export function InningColumn({ inningNumber, scores: initialScores, onScoresUpda
   };
 
   return (
-    <Card className="w-full md:w-auto md:min-w-[350px] shadow-lg bg-blue-100 dark:bg-blue-900/70">
+    <Card className="w-full md:w-auto md:min-w-[350px] shadow-lg bg-blue-700 dark:bg-blue-800">
       <CardHeader>
-        <CardTitle className="text-primary">{inningNumber === 1 ? "1st Inning" : "2nd Inning"}</CardTitle>
+        <CardTitle className="text-gray-100">{inningNumber === 1 ? "1st Inning" : "2nd Inning"}</CardTitle>
       </CardHeader>
       <CardContent className="space-y-2">
         {Array.from({ length: SCORE_BOX_COUNT }).map((_, index) => (
@@ -94,8 +95,8 @@ export function InningColumn({ inningNumber, scores: initialScores, onScoresUpda
               onChange={(e) => handleInputChange(index, e.target.value)}
               maxLength={MAX_INPUT_LENGTH}
               className={cn(
-                "h-9 w-full text-center transition-colors duration-300", 
-                "bg-background dark:bg-slate-800", 
+                "h-9 w-full text-center transition-colors duration-300 text-base md:text-sm", 
+                "bg-background dark:bg-slate-800 text-foreground dark:text-gray-100", 
                 inputErrors[index] ? "border-destructive ring-destructive ring-1" : "focus:ring-ring"
               )}
               aria-invalid={inputErrors[index]}
@@ -114,7 +115,7 @@ export function InningColumn({ inningNumber, scores: initialScores, onScoresUpda
       <CardFooter>
         <p 
           className={cn(
-            "text-lg font-semibold transition-all duration-300 p-1 rounded text-foreground",
+            "text-lg font-semibold transition-all duration-300 p-1 rounded text-gray-100",
             highlightScore ? "bg-accent/30" : ""
           )}
         >
