@@ -77,7 +77,7 @@ export function InningColumn({ inningNumber, scores: initialScores, onScoresUpda
   };
 
   return (
-    <Card className="w-full md:w-auto md:min-w-[320px] shadow-lg bg-blue-100 dark:bg-blue-900/70">
+    <Card className="w-full md:w-auto md:min-w-[350px] shadow-lg bg-blue-100 dark:bg-blue-900/70">
       <CardHeader>
         <CardTitle className="text-primary">{inningNumber === 1 ? "1st Inning" : "2nd Inning"}</CardTitle>
       </CardHeader>
@@ -94,7 +94,7 @@ export function InningColumn({ inningNumber, scores: initialScores, onScoresUpda
               onChange={(e) => handleInputChange(index, e.target.value)}
               maxLength={MAX_INPUT_LENGTH}
               className={cn(
-                "h-9 w-48 text-center transition-colors duration-300", 
+                "h-9 w-full text-center transition-colors duration-300", 
                 "bg-background dark:bg-slate-800", 
                 inputErrors[index] ? "border-destructive ring-destructive ring-1" : "focus:ring-ring"
               )}
@@ -114,8 +114,8 @@ export function InningColumn({ inningNumber, scores: initialScores, onScoresUpda
       <CardFooter>
         <p 
           className={cn(
-            "text-lg font-semibold transition-all duration-300 p-1 rounded text-primary-foreground dark:text-blue-100",
-            highlightScore ? "bg-accent/50 dark:bg-accent/70" : ""
+            "text-lg font-semibold transition-all duration-300 p-1 rounded text-foreground",
+            highlightScore ? "bg-accent/30" : ""
           )}
         >
           Total: {inningStats.runs} runs, {inningStats.wickets} wickets
@@ -124,5 +124,3 @@ export function InningColumn({ inningNumber, scores: initialScores, onScoresUpda
     </Card>
   );
 }
-
-    
