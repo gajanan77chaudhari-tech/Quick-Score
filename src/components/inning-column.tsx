@@ -51,9 +51,11 @@ export function InningColumn({
 
   const handleScoreInputChange = (index: number, value: string) => {
     const newValues = [...scoreInputValues];
-    newValues[index] = value.slice(0, MAX_INPUT_LENGTH);
+    // Remove all spaces from the input for processing, but keep the original value with spaces for display
+    const processedValue = value.slice(0, MAX_INPUT_LENGTH); // Enforce max length on the displayed value
+    newValues[index] = processedValue;
     setScoreInputValues(newValues);
-    onScoresUpdate(newValues); 
+    onScoresUpdate(newValues); // Pass the value with spaces for display
   };
 
   const handleDetailInputChange = (index: number, value: string) => {
@@ -68,7 +70,7 @@ export function InningColumn({
 
   return (
     <Card className={cn(
-        "w-full md:w-auto md:min-w-[450px] shadow-lg", 
+        "w-full md:w-auto md:min-w-[360px] shadow-lg", 
         "bg-blue-700 dark:bg-blue-800" 
       )}>
       <CardHeader>
@@ -76,8 +78,8 @@ export function InningColumn({
       </CardHeader>
       <CardContent className="space-y-2">
         <div className="grid grid-cols-2 gap-x-2 mb-2"> 
-          <Label htmlFor={`inning-${inningNumber}-score-header`} className="text-sm font-medium text-gray-200 dark:text-gray-300 col-span-1">Score</Label>
-          <Label htmlFor={`inning-${inningNumber}-detail-header`} className="text-sm font-medium text-gray-200 dark:text-gray-300 col-span-1">Team</Label>
+          <Label htmlFor={`inning-${inningNumber}-score-header`} className="text-sm font-medium text-gray-200 dark:text-gray-300 col-span-1 text-center">Score</Label>
+          <Label htmlFor={`inning-${inningNumber}-detail-header`} className="text-sm font-medium text-gray-200 dark:text-gray-300 col-span-1 text-center">Team</Label>
         </div>
         {Array.from({ length: SCORE_BOX_COUNT }).map((_, index) => (
           <div key={index} className="flex items-center gap-2">
