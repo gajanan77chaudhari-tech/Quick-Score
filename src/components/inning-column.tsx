@@ -38,13 +38,13 @@ export function InningColumn({
     if (JSON.stringify(initialScores) !== JSON.stringify(scoreInputValues)) {
        setScoreInputValues(initialScores.length === SCORE_BOX_COUNT ? initialScores : Array(SCORE_BOX_COUNT).fill(""));
     }
-  }, [initialScores]);
+  }, [initialScores, scoreInputValues]); // Added scoreInputValues to dependencies
 
   useEffect(() => {
     if (JSON.stringify(initialEventDetails) !== JSON.stringify(detailInputValues)) {
       setDetailInputValues(initialEventDetails.length === SCORE_BOX_COUNT ? initialEventDetails : Array(SCORE_BOX_COUNT).fill(""));
     }
-  }, [initialEventDetails]);
+  }, [initialEventDetails, detailInputValues]); // Added detailInputValues to dependencies
 
 
   const handleScoreInputChange = (index: number, value: string) => {
@@ -74,8 +74,8 @@ export function InningColumn({
       </CardHeader>
       <CardContent className="space-y-2">
         <div className="grid grid-cols-2 gap-x-2 mb-2">
-          <Label htmlFor={`inning-${inningNumber}-score-header`} className="text-sm font-medium text-gray-200 dark:text-gray-300">Score (e.g., 4, W, 2/1)</Label>
-          <Label htmlFor={`inning-${inningNumber}-detail-header`} className="text-sm font-medium text-gray-200 dark:text-gray-300">Player/Details</Label>
+          <Label htmlFor={`inning-${inningNumber}-score-header`} className="text-sm font-medium text-gray-200 dark:text-gray-300">Score</Label>
+          <Label htmlFor={`inning-${inningNumber}-detail-header`} className="text-sm font-medium text-gray-200 dark:text-gray-300">Team</Label>
         </div>
         {Array.from({ length: SCORE_BOX_COUNT }).map((_, index) => (
           <div key={index} className="flex items-center gap-2">
