@@ -55,7 +55,7 @@ export default function ScoreScribePage() {
             value={teamName}
             onChange={(e) => setTeamName(e.target.value)}
             className={cn(
-              "text-center text-2xl font-semibold text-accent bg-accent/10 dark:bg-accent/20 border-primary focus:ring-primary placeholder:text-muted-foreground/70",
+              "text-center text-2xl font-semibold text-foreground bg-accent/10 dark:bg-accent/20 border-primary focus:ring-primary placeholder:text-muted-foreground/70",
               "w-full max-w-xs mx-auto" 
             )}
             aria-label="Team Name"
