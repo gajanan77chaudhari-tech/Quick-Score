@@ -14,10 +14,10 @@ import {
   DropdownMenuSeparator,
   DropdownMenuLabel
 } from "@/components/ui/dropdown-menu";
-import { Settings, RotateCcw, Palette } from "lucide-react";
+import { Settings, RotateCcw, Palette, FileText } from "lucide-react"; // Added FileText
 import { ScrollArea } from "@/components/ui/scroll-area";
 import { calculateTotalStats } from "@/lib/score-parser";
-
+import { useToast } from "@/hooks/use-toast"; // Added useToast
 
 const SCORE_BOX_COUNT = 17; // Represents events/balls per inning
 
@@ -779,6 +779,8 @@ export default function ScoreScribePage() {
   const [teamName, setTeamName] = useState<string>(""); 
   const [teamNameInputBgColor, setTeamNameInputBgColor] = useState<string>("");
 
+  const { toast } = useToast();
+
 
   const inning1Stats = useMemo(() => calculateTotalStats(inning1Scores, inning1EventDetails, teamName), [inning1Scores, inning1EventDetails, teamName]);
   const inning2Stats = useMemo(() => calculateTotalStats(inning2Scores, inning2EventDetails, teamName), [inning2Scores, inning2EventDetails, teamName]);
@@ -790,6 +792,26 @@ export default function ScoreScribePage() {
     setInning2Scores(Array(SCORE_BOX_COUNT).fill(""));
     setInning1EventDetails(Array(SCORE_BOX_COUNT).fill(""));
     setInning2EventDetails(Array(SCORE_BOX_COUNT).fill(""));
+  };
+
+  const handleGenerateSummary = () => {
+    const summaryTitle = teamName.trim() ? `Game Summary for ${teamName.trim()}` : "Game Summary";
+    const summaryDescription = `
+1st Inning:
+Runs: ${inning1Stats.runs}
+Wickets: ${inning1Stats.wickets}
+Overs: ${inning1Stats.overs}
+
+2nd Inning:
+Runs: ${inning2Stats.runs}
+Wickets: ${inning2Stats.wickets}
+Overs: ${inning2Stats.overs}
+    `;
+    toast({
+      title: summaryTitle,
+      description: <pre className="text-sm">{summaryDescription.trim()}</pre>,
+      duration: 9000, // Optional: make toast stay longer
+    });
   };
   
 
@@ -806,6 +828,11 @@ export default function ScoreScribePage() {
             <DropdownMenuItem onClick={handleResetGame} className="cursor-pointer">
               <RotateCcw className="mr-2 h-4 w-4" />
               <span>Reset Scores</span>
+            </DropdownMenuItem>
+            <DropdownMenuSeparator />
+            <DropdownMenuItem onClick={handleGenerateSummary} className="cursor-pointer">
+              <FileText className="mr-2 h-4 w-4" />
+              <span>Generate Game Summary</span>
             </DropdownMenuItem>
           </DropdownMenuContent>
         </DropdownMenu>
@@ -880,3 +907,6 @@ export default function ScoreScribePage() {
     </div>
   );
 }
+
+
+    
