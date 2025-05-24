@@ -28,13 +28,13 @@ function usePrevious<T>(value: T): T | undefined {
 
 const isValidInput = (val: string): boolean => {
   if (val === '') return true;
-  const upperVal = val.toUpperCase();
+  // No need to call toUpperCase() here as it's done in handleInputChange
   // Allows:
   // - Single digit 0-6
   // - 'W'
-  // - Digit (0-6) + '/' + one or more Digits (e.g., 4/1, 0/12)
-  const regex = /^([0-6])$|^W$|^([0-6])\/(\d+)$/;
-  return regex.test(upperVal);
+  // - Digit (0-6) + '/' + zero or more Digits (e.g., 4/, 4/1, 0/12)
+  const regex = /^([0-6])$|^W$|^([0-6])\/(\d*)$/; // Changed \d+ to \d* to allow "R/" as valid intermediate
+  return regex.test(val);
 };
 
 export function InningColumn({ inningNumber, scores: initialScores, onScoresUpdate, inningStats }: InningColumnProps) {
@@ -61,16 +61,23 @@ export function InningColumn({ inningNumber, scores: initialScores, onScoresUpda
 
   const handleInputChange = (index: number, value: string) => {
     const newValues = [...inputValues];
-    const upperValue = value.toUpperCase();
-    newValues[index] = upperValue.slice(0, MAX_INPUT_LENGTH);
+    // Uppercase, trim, then slice
+    const processedValue = value.toUpperCase().trim().slice(0, MAX_INPUT_LENGTH);
+    newValues[index] = processedValue;
     setInputValues(newValues);
 
-    const isValid = isValidInput(newValues[index]);
+    const isValid = isValidInput(processedValue);
     const newErrors = [...inputErrors];
-    newErrors[index] = !isValid && newValues[index] !== ''; // Error if invalid and not empty
+    // An empty processedValue is valid (clearing the input), but don't show error for it
+    // Show error if not valid AND not empty.
+    // Also, if it ends with just a slash (e.g., "4/"), it's a valid partial input for typing,
+    // but not a "complete" entry for calculation (calculateInningStats handles this).
+    // We only mark as error if it's invalid *and* not empty.
+    // "4/" will pass isValidInput now, so it won't be marked as error.
+    newErrors[index] = !isValid && processedValue !== '';
     setInputErrors(newErrors);
 
-    onScoresUpdate(newValues);
+    onScoresUpdate(newValues); // Pass the array which contains the processed value
   };
 
   return (
@@ -91,7 +98,7 @@ export function InningColumn({ inningNumber, scores: initialScores, onScoresUpda
               onChange={(e) => handleInputChange(index, e.target.value)}
               maxLength={MAX_INPUT_LENGTH}
               className={cn(
-                "h-9 w-20 text-center transition-colors duration-300", // Increased width for new format
+                "h-9 w-20 text-center transition-colors duration-300",
                 "bg-background dark:bg-slate-900", 
                 inputErrors[index] ? "border-destructive ring-destructive ring-1" : "focus:ring-ring"
               )}
