@@ -124,7 +124,7 @@ export function InningColumn({
       </CardContent>
       <CardFooter>
         <p className="text-lg font-semibold p-1 rounded text-foreground">
-          Total: {inningStats.runs} runs, {inningStats.wickets} wickets in {inningStats.overs} overs
+          Total: {inningStats.runs} runs, {inningStats.wickets} wickets
         </p>
       </CardFooter>
     </Card>
