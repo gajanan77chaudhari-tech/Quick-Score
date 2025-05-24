@@ -60,3 +60,5 @@ export function ResultsInningColumn({ inningNumber, teamName, scores }: ResultsI
     </Card>
   );
 }
+
+    
