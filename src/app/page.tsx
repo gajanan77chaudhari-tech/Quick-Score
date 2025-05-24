@@ -3,7 +3,7 @@
 
 import React, { useState, useMemo } from "react";
 import { InningColumn } from "@/components/inning-column";
-import { Input } from "@/components/ui/input"; // Added Input
+import { Input } from "@/components/ui/input";
 import { cn } from "@/lib/utils";
 
 const SCORE_BOX_COUNT = 17;
@@ -39,7 +39,7 @@ const calculateInningStats = (scores: string[]): { runs: number; wickets: number
 export default function ScoreScribePage() {
   const [inning1Scores, setInning1Scores] = useState<string[]>(Array(SCORE_BOX_COUNT).fill(""));
   const [inning2Scores, setInning2Scores] = useState<string[]>(Array(SCORE_BOX_COUNT).fill(""));
-  const [teamName, setTeamName] = useState<string>("Team Name"); // Added teamName state
+  const [teamName, setTeamName] = useState<string>("Team Name"); 
   
   const inning1Stats = useMemo(() => calculateInningStats(inning1Scores), [inning1Scores]);
   const inning2Stats = useMemo(() => calculateInningStats(inning2Scores), [inning2Scores]);
@@ -69,14 +69,12 @@ export default function ScoreScribePage() {
           scores={inning1Scores}
           onScoresUpdate={setInning1Scores}
           inningStats={inning1Stats}
-          teamName={teamName} // Pass teamName
         />
         <InningColumn
           inningNumber={2}
           scores={inning2Scores}
           onScoresUpdate={setInning2Scores}
           inningStats={inning2Stats}
-          teamName={teamName} // Pass teamName
         />
       </main>
       

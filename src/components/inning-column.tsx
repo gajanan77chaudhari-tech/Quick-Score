@@ -12,7 +12,6 @@ interface InningColumnProps {
   scores: string[];
   onScoresUpdate: (scores: string[]) => void;
   inningStats: { runs: number; wickets: number };
-  teamName?: string; // Added teamName prop
 }
 
 const SCORE_BOX_COUNT = 17;
@@ -22,11 +21,11 @@ const isValidInput = (val: string): boolean => {
   const trimmedVal = val.trim();
   if (trimmedVal === '') return true;
   
-  const regex = /^(\d{1,3})$|^W$|^(\d{0,3}\/\d{0,2})$|^(\/\d{1,2})$/;
+  const regex = /^(\d{1,3})$|^W$|^(\d{0,3}\/\d{0,2})$|^(\/\d{1,2})$|^(\d+\/)$/; // Allow "4/" or "/1"
   return regex.test(trimmedVal);
 };
 
-export function InningColumn({ inningNumber, scores: initialScores, onScoresUpdate, inningStats, teamName }: InningColumnProps) {
+export function InningColumn({ inningNumber, scores: initialScores, onScoresUpdate, inningStats }: InningColumnProps) {
   const [inputValues, setInputValues] = useState<string[]>(() => 
     initialScores.length === SCORE_BOX_COUNT ? initialScores : Array(SCORE_BOX_COUNT).fill("")
   );
@@ -42,16 +41,17 @@ export function InningColumn({ inningNumber, scores: initialScores, onScoresUpda
     newValues[index] = processedValue;
     setInputValues(newValues);
 
-    const isValid = isValidInput(processedValue);
+    const isValid = isValidInput(processedValue.replace(/\s/g, '')); // Validate after removing spaces
     const newErrors = [...inputErrors];
-    newErrors[index] = !isValid && processedValue.trim() !== '' && !/^\d*\/?$/.test(processedValue.trim());
+    // Show error only if it's not empty, not valid, and not a partial valid input (like "4/" or "/1")
+    newErrors[index] = processedValue.trim() !== '' && !isValid && !/^\d*\/?\d*$/.test(processedValue.trim());
     setInputErrors(newErrors);
 
-    onScoresUpdate(newValues.map(v => v.trim()));
+    onScoresUpdate(newValues.map(v => v.trim().replace(/\s/g, '')));
   };
 
   const inningLabel = inningNumber === 1 ? "1st Inning" : "2nd Inning";
-  const cardTitle = teamName && teamName.trim() !== "" ? `${teamName} - ${inningLabel}` : inningLabel;
+  const cardTitle = inningLabel;
 
   return (
     <Card className="w-full md:w-auto md:min-w-[350px] shadow-lg bg-blue-700 dark:bg-blue-800">
