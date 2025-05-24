@@ -62,7 +62,7 @@ export function InningColumn({ inningNumber, scores: initialScores, onScoresUpda
   };
 
   return (
-    <Card className="w-full md:w-auto md:min-w-[300px] shadow-lg">
+    <Card className="w-full md:w-auto md:min-w-[300px] shadow-lg bg-blue-100 dark:bg-blue-900/30">
       <CardHeader>
         <CardTitle className="text-primary">{inningNumber === 1 ? "1st Inning" : "2nd Inning"}</CardTitle>
       </CardHeader>
@@ -80,6 +80,7 @@ export function InningColumn({ inningNumber, scores: initialScores, onScoresUpda
               maxLength={1}
               className={cn(
                 "h-9 w-16 text-center transition-colors duration-300",
+                "bg-background", // Ensure input background contrasts with blue card
                 inputErrors[index] ? "border-destructive ring-destructive ring-1" : "focus:ring-ring"
               )}
               aria-invalid={inputErrors[index]}
