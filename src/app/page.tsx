@@ -14,10 +14,10 @@ import {
   DropdownMenuSeparator,
   DropdownMenuLabel
 } from "@/components/ui/dropdown-menu";
-import { Settings, RotateCcw, Palette, FileText } from "lucide-react"; // Added FileText
+import { Settings, RotateCcw, Palette, FileText } from "lucide-react";
 import { ScrollArea } from "@/components/ui/scroll-area";
 import { calculateTotalStats } from "@/lib/score-parser";
-import { useToast } from "@/hooks/use-toast"; // Added useToast
+import { useToast } from "@/hooks/use-toast";
 
 const SCORE_BOX_COUNT = 17; // Represents events/balls per inning
 
@@ -796,21 +796,27 @@ export default function ScoreScribePage() {
 
   const handleGenerateSummary = () => {
     const summaryTitle = teamName.trim() ? `Game Summary for ${teamName.trim()}` : "Game Summary";
-    const summaryDescription = `
-1st Inning:
-Runs: ${inning1Stats.runs}
-Wickets: ${inning1Stats.wickets}
-Overs: ${inning1Stats.overs}
+    
+    let inning1Text;
+    if (inning1Stats.runs > 0 || inning1Stats.wickets > 0 || inning1Stats.balls > 0) {
+      inning1Text = `1st Inning: ${inning1Stats.runs}/${inning1Stats.wickets}`;
+    } else {
+      inning1Text = `1st Inning: No scores recorded${teamName.trim() ? ' for ' + teamName.trim() : ''}`;
+    }
 
-2nd Inning:
-Runs: ${inning2Stats.runs}
-Wickets: ${inning2Stats.wickets}
-Overs: ${inning2Stats.overs}
-    `;
+    let inning2Text;
+    if (inning2Stats.runs > 0 || inning2Stats.wickets > 0 || inning2Stats.balls > 0) {
+      inning2Text = `2nd Inning: ${inning2Stats.runs}/${inning2Stats.wickets}`;
+    } else {
+      inning2Text = `2nd Inning: No scores recorded${teamName.trim() ? ' for ' + teamName.trim() : ''}`;
+    }
+
+    const summaryDescription = `${inning1Text}\n${inning2Text}`;
+    
     toast({
       title: summaryTitle,
       description: <pre className="text-sm">{summaryDescription.trim()}</pre>,
-      duration: 9000, // Optional: make toast stay longer
+      duration: 9000,
     });
   };
   
@@ -907,6 +913,3 @@ Overs: ${inning2Stats.overs}
     </div>
   );
 }
-
-
-    
