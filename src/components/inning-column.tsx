@@ -56,7 +56,7 @@ export function InningColumn({
 
   const handleDetailInputChange = (index: number, value: string) => {
     const newValues = [...detailInputValues];
-    newValues[index] = value.slice(0, MAX_INPUT_LENGTH); // Ensure detail inputs also respect max length
+    newValues[index] = value.slice(0, MAX_INPUT_LENGTH); 
     setDetailInputValues(newValues);
     onEventDetailsUpdate(newValues);
   };
@@ -73,8 +73,8 @@ export function InningColumn({
         <CardTitle className="text-gray-100">{cardTitle}</CardTitle>
       </CardHeader>
       <CardContent className="space-y-2">
-        <div className="grid grid-cols-3 gap-x-2 mb-2"> {/* Adjusted grid for potential 2/3 and 1/3 distribution visual for labels */}
-          <Label htmlFor={`inning-${inningNumber}-score-header`} className="text-sm font-medium text-gray-200 dark:text-gray-300 col-span-2">Score</Label>
+        <div className="grid grid-cols-2 gap-x-2 mb-2"> 
+          <Label htmlFor={`inning-${inningNumber}-score-header`} className="text-sm font-medium text-gray-200 dark:text-gray-300 col-span-1">Score</Label>
           <Label htmlFor={`inning-${inningNumber}-detail-header`} className="text-sm font-medium text-gray-200 dark:text-gray-300 col-span-1">Team</Label>
         </div>
         {Array.from({ length: SCORE_BOX_COUNT }).map((_, index) => (
@@ -86,7 +86,7 @@ export function InningColumn({
               onChange={(e) => handleScoreInputChange(index, e.target.value)}
               maxLength={MAX_INPUT_LENGTH}
               className={cn(
-                "h-9 text-center transition-colors duration-300 text-base md:text-sm w-2/3", // Changed to w-2/3, removed flex-1 and w-full
+                "h-9 text-center transition-colors duration-300 text-base md:text-sm w-1/2", 
                 "bg-background dark:bg-slate-800 text-foreground dark:text-gray-100",
                 "focus:ring-ring"
               )}
@@ -99,7 +99,7 @@ export function InningColumn({
               onChange={(e) => handleDetailInputChange(index, e.target.value)}
               maxLength={MAX_INPUT_LENGTH}
               className={cn(
-                "h-9 text-center transition-colors duration-300 text-base md:text-sm w-1/3", // Changed to w-1/3, removed flex-1 and w-full
+                "h-9 text-center transition-colors duration-300 text-base md:text-sm w-1/2", 
                 "bg-background dark:bg-slate-800 text-foreground dark:text-gray-100",
                 "focus:ring-ring"
               )}
