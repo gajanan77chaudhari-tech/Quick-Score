@@ -24,7 +24,7 @@ const calculateInningStats = (scores: string[]): { runs: number; wickets: number
   let runs = 0;
   let wickets = 0;
   scores.forEach(scoreEntry => {
-    const s = scoreEntry.toUpperCase().trim();
+    const s = scoreEntry.toUpperCase().trim(); // Trim spaces for consistent parsing
     if (!s) return;
 
     if (s.includes('/')) {
@@ -39,9 +39,10 @@ const calculateInningStats = (scores: string[]): { runs: number; wickets: number
         wickets += parseInt(wicketStr, 10);
       }
     } else {
-      const runStr = s.replace(/[^0-9]/g, ""); // Extract only digits
+      // No slash, count numbers as runs and 'W's as wickets
+      const runStr = s.replace(/[^0-9W]/gi, "").replace(/W/gi, ""); // Remove non-digits first, then W
       if (runStr) {
-        runs += parseInt(runStr, 10);
+         runs += parseInt(runStr, 10);
       }
       const wicketCountFromW = (s.match(/W/g) || []).length; // Count 'W's
       wickets += wicketCountFromW;
@@ -804,7 +805,6 @@ export default function ScoreScribePage() {
   const [inning1Scores, setInning1Scores] = useState<string[]>(Array(SCORE_BOX_COUNT).fill(""));
   const [inning2Scores, setInning2Scores] = useState<string[]>(Array(SCORE_BOX_COUNT).fill(""));
   const [inning1TeamName, setInning1TeamName] = useState<string>("");
-  const [inning2TeamName, setInning2TeamName] = useState<string>("");
   const [teamNameInputBgColor, setTeamNameInputBgColor] = useState<string>(""); // Stores hex string
 
 
@@ -813,7 +813,6 @@ export default function ScoreScribePage() {
 
   const handleResetGame = () => {
     setInning1TeamName("");
-    setInning2TeamName("");
     setInning1Scores(Array(SCORE_BOX_COUNT).fill(""));
     setInning2Scores(Array(SCORE_BOX_COUNT).fill(""));
     setTeamNameInputBgColor(""); 
@@ -838,8 +837,8 @@ export default function ScoreScribePage() {
       </div>
 
       <header className="text-center w-full mt-12 sm:mt-10 md:mt-8">
-        <div className="flex flex-col sm:flex-row gap-4 items-center justify-center mb-6 md:max-w-2xl lg:max-w-3xl mx-auto">
-          <div className="relative flex items-center justify-center group w-full sm:w-1/2">
+        <div className="flex justify-center mb-6 mx-auto">
+          <div className="relative flex items-center group w-full md:max-w-lg">
             <Input
               type="text"
               placeholder="Team 1 Name (Batting 1st)"
@@ -878,14 +877,6 @@ export default function ScoreScribePage() {
               </DropdownMenuContent>
             </DropdownMenu>
           </div>
-          <Input
-            type="text"
-            placeholder="Team 2 Name (Batting 2nd)"
-            value={inning2TeamName}
-            onChange={(e) => setInning2TeamName(e.target.value)}
-            className="text-center text-xl font-semibold text-foreground placeholder:text-muted-foreground/70 bg-accent/10 dark:bg-accent/20 border-primary focus:ring-primary rounded-md py-2 w-full sm:w-1/2"
-            aria-label="Team 2 Name"
-          />
         </div>
       </header>
 
@@ -902,7 +893,7 @@ export default function ScoreScribePage() {
           scores={inning2Scores}
           onScoresUpdate={setInning2Scores}
           inningStats={inning2Stats}
-          inningTeamName={inning2TeamName}
+          inningTeamName={undefined} 
         />
       </main>
       
@@ -912,5 +903,3 @@ export default function ScoreScribePage() {
     </div>
   );
 }
-
-    
