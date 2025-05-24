@@ -2,6 +2,7 @@
 "use client";
 
 import React, { useState, useMemo, useEffect } from "react";
+import { useRouter } from "next/navigation";
 import { InningColumn } from "@/components/inning-column";
 import { Input } from "@/components/ui/input";
 import { cn } from "@/lib/utils";
@@ -14,41 +15,12 @@ import {
   DropdownMenuSeparator,
   DropdownMenuLabel
 } from "@/components/ui/dropdown-menu";
-import { Settings, RotateCcw, Palette } from "lucide-react";
+import { Settings, RotateCcw, Palette, NotebookPen } from "lucide-react";
 import { ScrollArea } from "@/components/ui/scroll-area";
+import { calculateTotalStats } from "@/lib/score-parser";
 
 
 const SCORE_BOX_COUNT = 17;
-
-const calculateInningStats = (scores: string[]): { runs: number; wickets: number } => {
-  let runs = 0;
-  let wickets = 0;
-  scores.forEach(scoreEntry => {
-    const s = scoreEntry.toUpperCase().trim();
-    if (!s) return;
-
-    if (s.includes('/')) {
-      const parts = s.split('/', 2);
-      const runStr = parts[0].replace(/[^0-9]/g, "");
-      const wicketStr = parts[1].replace(/[^0-9]/g, "");
-      
-      if (runStr) {
-        runs += parseInt(runStr, 10);
-      }
-      if (wicketStr) {
-        wickets += parseInt(wicketStr, 10);
-      }
-    } else {
-      const runStr = s.replace(/[^0-9W]/gi, "").replace(/W/gi, "");
-      if (runStr) {
-         runs += parseInt(runStr, 10);
-      }
-      const wicketCountFromW = (s.match(/W/g) || []).length;
-      wickets += wicketCountFromW;
-    }
-  });
-  return { runs, wickets };
-};
 
 const userColorList = `
 #000000	Black (W3C)
@@ -796,25 +768,34 @@ const parseColorList = (list: string): { name: string; hex: string }[] => {
     .filter(Boolean) as { name: string; hex: string }[];
 };
 
-
 const extensiveColorOptions = parseColorList(userColorList);
 
-
 export default function ScoreScribePage() {
+  const router = useRouter();
   const [inning1Scores, setInning1Scores] = useState<string[]>(Array(SCORE_BOX_COUNT).fill(""));
   const [inning2Scores, setInning2Scores] = useState<string[]>(Array(SCORE_BOX_COUNT).fill(""));
-  const [teamName, setTeamName] = useState<string>(""); // Renamed from inning1TeamName
+  const [teamName, setTeamName] = useState<string>("");
   const [teamNameInputBgColor, setTeamNameInputBgColor] = useState<string>("");
 
 
-  const inning1Stats = useMemo(() => calculateInningStats(inning1Scores), [inning1Scores]);
-  const inning2Stats = useMemo(() => calculateInningStats(inning2Scores), [inning2Scores]);
+  const inning1Stats = useMemo(() => calculateTotalStats(inning1Scores), [inning1Scores]);
+  const inning2Stats = useMemo(() => calculateTotalStats(inning2Scores), [inning2Scores]);
 
   const handleResetGame = () => {
     setTeamName("");
     setInning1Scores(Array(SCORE_BOX_COUNT).fill(""));
     setInning2Scores(Array(SCORE_BOX_COUNT).fill(""));
     setTeamNameInputBgColor(""); 
+  };
+  
+  const handleViewScorecard = () => {
+    if (typeof window !== "undefined") { // Ensure window is defined (client-side)
+      const scores1String = JSON.stringify(inning1Scores);
+      const scores2String = JSON.stringify(inning2Scores);
+      router.push(
+        `/team-results?team=${encodeURIComponent(teamName)}&scores1=${encodeURIComponent(scores1String)}&scores2=${encodeURIComponent(scores2String)}`
+      );
+    }
   };
 
   return (
@@ -836,8 +817,8 @@ export default function ScoreScribePage() {
       </div>
 
       <header className="text-center w-full mt-12 sm:mt-10 md:mt-8">
-        <div className="flex justify-center mb-6 mx-auto">
-          <div className="relative flex items-center group w-full md:max-w-lg">
+        <div className="flex flex-col sm:flex-row justify-center items-center gap-2 mb-6 mx-auto w-full px-4">
+          <div className="relative flex items-center group w-full sm:w-auto sm:max-w-xs md:max-w-sm lg:max-w-md">
             <Input
               type="text"
               placeholder="Team Name"
@@ -876,6 +857,10 @@ export default function ScoreScribePage() {
               </DropdownMenuContent>
             </DropdownMenu>
           </div>
+          <Button onClick={handleViewScorecard} variant="outline" className="w-full sm:w-auto mt-2 sm:mt-0">
+            <NotebookPen className="mr-2 h-4 w-4" />
+            View Full Scorecard
+          </Button>
         </div>
       </header>
 
@@ -885,12 +870,14 @@ export default function ScoreScribePage() {
           scores={inning1Scores}
           onScoresUpdate={setInning1Scores}
           inningStats={inning1Stats}
+          // teamName={teamName} // Removed, as titles are fixed
         />
         <InningColumn
           inningNumber={2}
           scores={inning2Scores}
           onScoresUpdate={setInning2Scores}
           inningStats={inning2Stats}
+          // teamName="" // Second inning does not use the main team name for its title
         />
       </main>
       
@@ -900,6 +887,3 @@ export default function ScoreScribePage() {
     </div>
   );
 }
-
-
-    

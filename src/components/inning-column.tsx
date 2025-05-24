@@ -11,6 +11,7 @@ interface InningColumnProps {
   scores: string[];
   onScoresUpdate: (scores: string[]) => void;
   inningStats: { runs: number; wickets: number };
+  // teamName?: string; // Removed as per last request to fix titles
 }
 
 const SCORE_BOX_COUNT = 17;
@@ -27,17 +28,21 @@ export function InningColumn({ inningNumber, scores: initialScores, onScoresUpda
 
   const handleInputChange = (index: number, value: string) => {
     const newValues = [...inputValues];
-    const processedValue = value.slice(0, MAX_INPUT_LENGTH); 
-    newValues[index] = processedValue;
+    // No specific validation, just ensure length limit and pass through
+    newValues[index] = value.slice(0, MAX_INPUT_LENGTH);
     setInputValues(newValues);
     onScoresUpdate(newValues); 
   };
 
   const inningLabel = inningNumber === 1 ? "1st Inning" : "2nd Inning";
-  const cardTitle = inningLabel; // Simplified title
+  // const cardTitle = teamName ? `${teamName} - ${inningLabel}` : inningLabel;
+  const cardTitle = inningLabel; // Title is now fixed
 
   return (
-    <Card className="w-full md:w-auto md:min-w-[350px] shadow-lg bg-blue-700 dark:bg-blue-800">
+    <Card className={cn(
+        "w-full md:w-auto md:min-w-[350px] shadow-lg",
+        "bg-blue-700 dark:bg-blue-800" 
+      )}>
       <CardHeader>
         <CardTitle className="text-gray-100">{cardTitle}</CardTitle>
       </CardHeader>
@@ -70,7 +75,3 @@ export function InningColumn({ inningNumber, scores: initialScores, onScoresUpda
     </Card>
   );
 }
-
-    
-
-    
