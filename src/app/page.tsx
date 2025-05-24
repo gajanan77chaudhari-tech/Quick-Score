@@ -59,15 +59,15 @@ export default function ScoreScribePage() {
   };
 
   return (
-    <div className="container mx-auto p-4 sm:p-6 md:p-8 flex flex-col items-center gap-8 min-h-screen relative">
-      <div className="absolute top-4 right-4 sm:top-6 sm:right-6 md:top-8 md:right-8 z-10">
+    <div className="p-4 sm:p-6 md:p-8 flex flex-col items-center gap-8 min-h-screen relative">
+      <div className="absolute top-4 left-4 sm:top-6 sm:left-6 md:top-8 md:left-8 z-10">
         <DropdownMenu>
           <DropdownMenuTrigger asChild>
             <Button variant="outline" size="icon" aria-label="Game Options">
               <Settings className="h-5 w-5" />
             </Button>
           </DropdownMenuTrigger>
-          <DropdownMenuContent align="end">
+          <DropdownMenuContent align="start">
             <DropdownMenuItem onClick={handleResetGame} className="cursor-pointer">
               <RotateCcw className="mr-2 h-4 w-4" />
               <span>Reset Scores</span>
@@ -77,7 +77,7 @@ export default function ScoreScribePage() {
         </DropdownMenu>
       </div>
 
-      <header className="text-center w-full max-w-md mt-12 sm:mt-10 md:mt-8"> {/* Added margin-top to prevent overlap */}
+      <header className="text-center w-full mt-12 sm:mt-10 md:mt-8">
         <div className="mt-4">
           <Input
             type="text"
@@ -86,7 +86,7 @@ export default function ScoreScribePage() {
             onChange={(e) => setTeamName(e.target.value)}
             className={cn(
               "text-center text-2xl font-semibold text-foreground bg-accent/10 dark:bg-accent/20 border-primary focus:ring-primary placeholder:text-muted-foreground/70",
-              "w-full max-w-xs mx-auto" 
+              "w-full md:max-w-md lg:max-w-lg mx-auto" 
             )}
             aria-label="Team Name"
           />
