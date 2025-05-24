@@ -13,12 +13,30 @@ const SCORE_BOX_COUNT = 17;
 const calculateInningStats = (scores: string[]): { runs: number; wickets: number } => {
   let runs = 0;
   let wickets = 0;
-  scores.forEach(score => {
-    const s = score.toUpperCase();
-    if (/^[0-6]$/.test(s)) {
-      runs += parseInt(s, 10);
+  scores.forEach(scoreEntry => {
+    const s = scoreEntry.toUpperCase().trim();
+    if (!s) return; // Skip empty entries
+
+    if (s.includes('/')) {
+      const parts = s.split('/');
+      if (parts.length === 2) {
+        const runPart = parts[0];
+        const wicketPart = parts[1];
+        
+        if (/^[0-6]$/.test(runPart)) {
+          runs += parseInt(runPart, 10);
+        }
+        if (/^\d+$/.test(wicketPart)) {
+          const wicketCount = parseInt(wicketPart, 10);
+          if (wicketCount > 0) {
+             wickets += wicketCount;
+          }
+        }
+      }
     } else if (s === 'W') {
       wickets += 1;
+    } else if (/^[0-6]$/.test(s)) {
+      runs += parseInt(s, 10);
     }
   });
   return { runs, wickets };
@@ -73,7 +91,7 @@ export default function ScoreScribePage() {
       <header className="text-center">
         <h1 className="text-4xl sm:text-5xl font-bold text-primary">ScoreScribe</h1>
         <p className="text-muted-foreground mt-1 sm:mt-2 text-sm sm:text-base">
-          Enter cricket scores for two innings. Valid inputs: 0-6 or W (wicket).
+          Enter scores per ball: 0-6 (runs), W (wicket), or Runs/Wickets (e.g., 4/1).
         </p>
       </header>
 

@@ -15,6 +15,7 @@ interface InningColumnProps {
 }
 
 const SCORE_BOX_COUNT = 17;
+const MAX_INPUT_LENGTH = 4; // Allows for "R/WW" e.g., "6/10"
 
 // Custom hook to get the previous value of a prop or state
 function usePrevious<T>(value: T): T | undefined {
@@ -24,6 +25,17 @@ function usePrevious<T>(value: T): T | undefined {
   }, [value]);
   return ref.current;
 }
+
+const isValidInput = (val: string): boolean => {
+  if (val === '') return true;
+  const upperVal = val.toUpperCase();
+  // Allows:
+  // - Single digit 0-6
+  // - 'W'
+  // - Digit (0-6) + '/' + one or more Digits (e.g., 4/1, 0/12)
+  const regex = /^([0-6])$|^W$|^([0-6])\/(\d+)$/;
+  return regex.test(upperVal);
+};
 
 export function InningColumn({ inningNumber, scores: initialScores, onScoresUpdate, inningStats }: InningColumnProps) {
   const [inputValues, setInputValues] = useState<string[]>(() => 
@@ -50,19 +62,19 @@ export function InningColumn({ inningNumber, scores: initialScores, onScoresUpda
   const handleInputChange = (index: number, value: string) => {
     const newValues = [...inputValues];
     const upperValue = value.toUpperCase();
-    newValues[index] = upperValue.slice(0, 1); // Max 1 char
+    newValues[index] = upperValue.slice(0, MAX_INPUT_LENGTH);
     setInputValues(newValues);
 
-    const isValid = upperValue === '' || /^[0-6]$/.test(upperValue) || upperValue === 'W';
+    const isValid = isValidInput(newValues[index]);
     const newErrors = [...inputErrors];
-    newErrors[index] = !isValid && upperValue !== ''; // Error if invalid and not empty
+    newErrors[index] = !isValid && newValues[index] !== ''; // Error if invalid and not empty
     setInputErrors(newErrors);
 
     onScoresUpdate(newValues);
   };
 
   return (
-    <Card className="w-full md:w-auto md:min-w-[300px] shadow-lg bg-blue-200 dark:bg-blue-800/40">
+    <Card className="w-full md:w-auto md:min-w-[300px] shadow-lg bg-blue-500/30 dark:bg-blue-700/50">
       <CardHeader>
         <CardTitle className="text-primary">{inningNumber === 1 ? "1st Inning" : "2nd Inning"}</CardTitle>
       </CardHeader>
@@ -77,10 +89,10 @@ export function InningColumn({ inningNumber, scores: initialScores, onScoresUpda
               type="text"
               value={inputValues[index] || ""}
               onChange={(e) => handleInputChange(index, e.target.value)}
-              maxLength={1}
+              maxLength={MAX_INPUT_LENGTH}
               className={cn(
-                "h-9 w-16 text-center transition-colors duration-300",
-                "bg-background", // Ensure input background contrasts with blue card
+                "h-9 w-20 text-center transition-colors duration-300", // Increased width for new format
+                "bg-background dark:bg-slate-900", 
                 inputErrors[index] ? "border-destructive ring-destructive ring-1" : "focus:ring-ring"
               )}
               aria-invalid={inputErrors[index]}
