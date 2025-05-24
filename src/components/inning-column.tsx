@@ -88,7 +88,7 @@ export function InningColumn({
               onChange={(e) => handleScoreInputChange(index, e.target.value)}
               maxLength={MAX_INPUT_LENGTH}
               className={cn(
-                "h-9 text-center transition-colors duration-300 text-base md:text-sm w-1/2", 
+                "h-9 text-center transition-colors duration-300 text-base md:text-sm w-1/4", 
                 "bg-background dark:bg-slate-800 text-foreground dark:text-gray-100",
                 "focus:ring-ring"
               )}
@@ -101,7 +101,7 @@ export function InningColumn({
               onChange={(e) => handleDetailInputChange(index, e.target.value)}
               maxLength={MAX_INPUT_LENGTH}
               className={cn(
-                "h-9 text-center transition-colors duration-300 text-base md:text-sm w-1/2", 
+                "h-9 text-center transition-colors duration-300 text-base md:text-sm w-1/4", 
                 "bg-background dark:bg-slate-800 text-foreground dark:text-gray-100",
                 "focus:ring-ring"
               )}
