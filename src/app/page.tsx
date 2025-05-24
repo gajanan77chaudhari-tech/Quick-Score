@@ -2,7 +2,7 @@
 "use client";
 
 import React, { useState, useMemo, useEffect } from "react";
-import { useRouter } from "next/navigation";
+// Removed: import { useRouter } from "next/navigation";
 import { InningColumn } from "@/components/inning-column";
 import { Input } from "@/components/ui/input";
 import { cn } from "@/lib/utils";
@@ -15,7 +15,7 @@ import {
   DropdownMenuSeparator,
   DropdownMenuLabel
 } from "@/components/ui/dropdown-menu";
-import { Settings, RotateCcw, Palette, NotebookPen } from "lucide-react";
+import { Settings, RotateCcw, Palette } from "lucide-react"; // Removed NotebookPen
 import { ScrollArea } from "@/components/ui/scroll-area";
 import { calculateTotalStats } from "@/lib/score-parser";
 
@@ -755,10 +755,11 @@ const parseColorList = (list: string): { name: string; hex: string }[] => {
     .trim()
     .split('\n')
     .map(line => {
-      const parts = line.split(/\s+/); 
+      const parts = line.split(/\s+/); // Split by one or more spaces
       if (parts.length >= 2) {
         const hex = parts[0];
-        const name = parts.slice(1).join(' ');
+        const name = parts.slice(1).join(' '); // Join the rest as name
+        // Basic hex color validation
         if (/^#[0-9A-Fa-f]{6}$/.test(hex)) {
           return { name, hex };
         }
@@ -771,7 +772,7 @@ const parseColorList = (list: string): { name: string; hex: string }[] => {
 const extensiveColorOptions = parseColorList(userColorList);
 
 export default function ScoreScribePage() {
-  const router = useRouter();
+  // Removed: const router = useRouter();
   const [inning1Scores, setInning1Scores] = useState<string[]>(Array(SCORE_BOX_COUNT).fill(""));
   const [inning2Scores, setInning2Scores] = useState<string[]>(Array(SCORE_BOX_COUNT).fill(""));
   const [teamName, setTeamName] = useState<string>("");
@@ -785,18 +786,10 @@ export default function ScoreScribePage() {
     setTeamName("");
     setInning1Scores(Array(SCORE_BOX_COUNT).fill(""));
     setInning2Scores(Array(SCORE_BOX_COUNT).fill(""));
-    setTeamNameInputBgColor(""); 
+    setTeamNameInputBgColor(""); // Reset background color as well
   };
   
-  const handleViewScorecard = () => {
-    if (typeof window !== "undefined") { 
-      const scores1String = JSON.stringify(inning1Scores);
-      const scores2String = JSON.stringify(inning2Scores);
-      router.push(
-        `/team-results?team=${encodeURIComponent(teamName)}&scores1=${encodeURIComponent(scores1String)}&scores2=${encodeURIComponent(scores2String)}`
-      );
-    }
-  };
+  // Removed: handleViewScorecard function
 
   return (
     <div className="p-4 sm:p-6 md:p-8 flex flex-col items-center gap-8 min-h-screen relative w-full">
@@ -826,9 +819,9 @@ export default function ScoreScribePage() {
               onChange={(e) => setTeamName(e.target.value)}
               className={cn(
                 "text-center text-3xl font-semibold text-foreground placeholder:text-muted-foreground/70",
-                "flex-grow py-2",
-                !teamNameInputBgColor && "bg-accent/10 dark:bg-accent/20",
-                "border-primary focus:ring-primary rounded-md"
+                "flex-grow py-2", // Ensures input takes available space
+                !teamNameInputBgColor && "bg-accent/10 dark:bg-accent/20", // Default background if no custom color
+                "border-primary focus:ring-primary rounded-md" // Standard input styling
               )}
               style={{ backgroundColor: teamNameInputBgColor || undefined }}
               aria-label="Team Name"
@@ -839,8 +832,8 @@ export default function ScoreScribePage() {
                   <Palette className="h-5 w-5" />
                 </Button>
               </DropdownMenuTrigger>
-              <DropdownMenuContent align="end" className="max-h-96">
-                <ScrollArea className="h-[300px] w-[250px] p-2">
+              <DropdownMenuContent align="end" className="max-h-96"> {/* Added max-h for scrollability */}
+                <ScrollArea className="h-[300px] w-[250px] p-2"> {/* Added ScrollArea */}
                   <DropdownMenuItem onClick={() => setTeamNameInputBgColor("")} className="cursor-pointer">
                     <div className={cn("w-4 h-4 mr-2 rounded-sm border", !teamNameInputBgColor ? "bg-accent/10 dark:bg-accent/20" : "bg-background")}></div>
                     <span>Default</span>
@@ -857,10 +850,7 @@ export default function ScoreScribePage() {
               </DropdownMenuContent>
             </DropdownMenu>
           </div>
-          <Button onClick={handleViewScorecard} variant="outline" className="w-full sm:w-auto mt-2 sm:mt-0">
-            <NotebookPen className="mr-2 h-4 w-4" />
-            View Full Scorecard
-          </Button>
+          {/* Removed "View Full Scorecard" Button */}
         </div>
       </header>
 
@@ -870,12 +860,14 @@ export default function ScoreScribePage() {
           scores={inning1Scores}
           onScoresUpdate={setInning1Scores}
           inningStats={inning1Stats}
+          // Removed: teamName={teamName}
         />
         <InningColumn
           inningNumber={2}
           scores={inning2Scores}
           onScoresUpdate={setInning2Scores}
           inningStats={inning2Stats}
+          // Removed: teamName={teamName}
         />
       </main>
       
