@@ -1,15 +1,9 @@
 
 "use client";
 
-import React, { useState, useMemo, useEffect, useRef } from "react";
+import React, { useState, useMemo } from "react";
 import { InningColumn } from "@/components/inning-column";
-import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
-import { Button } from "@/components/ui/button";
-import { Input } from "@/components/ui/input";
-import { Label } from "@/components/ui/label";
-import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogDescription, DialogFooter } from "@/components/ui/dialog";
-import { RefreshCw } from "lucide-react";
-import { cn } from "@/lib/utils";
+import { cn } from "@/lib/utils"; // Keep if InningColumn or other components might use it implicitly or if other minor styling needs it.
 
 const SCORE_BOX_COUNT = 17;
 const MAX_INPUT_LENGTH = 10;
@@ -45,18 +39,10 @@ export default function ScoreScribePage() {
   const [inning1Scores, setInning1Scores] = useState<string[]>(Array(SCORE_BOX_COUNT).fill(""));
   const [inning2Scores, setInning2Scores] = useState<string[]>(Array(SCORE_BOX_COUNT).fill(""));
   
-  const [gameTitle, setGameTitle] = useState<string>("Cricket Match");
-
-  const [isDetailModalOpen, setIsDetailModalOpen] = useState<boolean>(false);
-
   const inning1Stats = useMemo(() => calculateInningStats(inning1Scores), [inning1Scores]);
   const inning2Stats = useMemo(() => calculateInningStats(inning2Scores), [inning2Scores]);
 
-  const handleResetGame = () => {
-    setInning1Scores(Array(SCORE_BOX_COUNT).fill(""));
-    setInning2Scores(Array(SCORE_BOX_COUNT).fill(""));
-    setGameTitle("Cricket Match");
-  };
+  // Removed gameTitle, isDetailModalOpen, and handleResetGame states and functions
 
   return (
     <div className="container mx-auto p-4 sm:p-6 md:p-8 flex flex-col items-center gap-8 min-h-screen">
@@ -67,47 +53,7 @@ export default function ScoreScribePage() {
         </p>
       </header>
 
-      <section aria-labelledby="game-summary-heading" className="w-full max-w-lg">
-        <Card className="shadow-md">
-          <CardHeader className="flex flex-row items-center justify-between pb-2">
-            <CardTitle id="game-summary-heading" className="text-2xl">Game Summary</CardTitle>
-            <Button variant="ghost" size="icon" onClick={handleResetGame} aria-label="Reset Game">
-              <RefreshCw className="h-5 w-5" />
-            </Button>
-          </CardHeader>
-          <CardContent className="space-y-4 text-base sm:text-lg pt-4">
-            <div className="mb-4">
-              <Label htmlFor="gameTitle" className="text-sm font-medium text-muted-foreground">Match Title</Label>
-              <Input
-                id="gameTitle"
-                value={gameTitle}
-                onChange={(e) => setGameTitle(e.target.value)}
-                placeholder="Enter Match Title"
-                className="mt-1 h-9"
-              />
-            </div>
-            <p className="p-1 rounded">
-              1st Inning: <strong>{inning1Stats.runs} runs</strong>, <strong>{inning1Stats.wickets} wickets</strong>
-            </p>
-            <p className="p-1 rounded">
-              2nd Inning: <strong>{inning2Stats.runs} runs</strong>, <strong>{inning2Stats.wickets} wickets</strong>
-            </p>
-          </CardContent>
-        </Card>
-      </section>
-
-      <section aria-labelledby="data-generation-heading" className="w-full max-w-lg">
-        <Card className="shadow-md">
-          <CardHeader>
-            <CardTitle id="data-generation-heading" className="text-xl">Inning Data Options</CardTitle>
-          </CardHeader>
-          <CardContent>
-            <Button onClick={() => setIsDetailModalOpen(true)} className="w-full bg-accent hover:bg-accent/90 text-accent-foreground">
-              View Detailed Inning Data
-            </Button>
-          </CardContent>
-        </Card>
-      </section>
+      {/* Game Summary and Inning Data Options sections are removed */}
 
       <main className="flex flex-col md:flex-row gap-6 md:gap-8 w-full items-start justify-center mt-4">
         <InningColumn
@@ -128,57 +74,7 @@ export default function ScoreScribePage() {
         <p>&copy; {new Date().getFullYear()} ScoreScribe. All rights reserved.</p>
       </footer>
 
-      <Dialog open={isDetailModalOpen} onOpenChange={setIsDetailModalOpen}>
-        <DialogContent className="sm:max-w-md bg-card">
-          <DialogHeader>
-            <DialogTitle className="text-primary">Detailed Inning Data: {gameTitle}</DialogTitle>
-            <DialogDescription>
-              A summary of scores for each inning.
-            </DialogDescription>
-          </DialogHeader>
-          <div className="space-y-6 py-4">
-            <div>
-              <h3 className="text-lg font-semibold text-primary mb-2">1st Inning</h3>
-              <p>Total Runs: <strong className="text-accent-foreground">{inning1Stats.runs}</strong></p>
-              <p>Total Wickets: <strong className="text-accent-foreground">{inning1Stats.wickets}</strong></p>
-              <div className="mt-3">
-                <h4 className="text-sm font-medium text-muted-foreground mb-1">Scores Entered:</h4>
-                <div className="grid grid-cols-4 sm:grid-cols-5 gap-1 text-xs mt-1 max-h-40 overflow-y-auto p-2 border rounded-md bg-background">
-                  {inning1Scores.filter(s => s.trim() !== "").length > 0 ? (
-                    inning1Scores.map((score, index) => (
-                      score.trim() !== "" && <span key={`inning1-detail-${index}`} className="p-1.5 bg-muted/70 rounded text-center shadow-sm">{score}</span>
-                    ))
-                  ) : (
-                    <span className="col-span-full text-center p-2 text-muted-foreground">No scores entered for 1st Inning.</span>
-                  )}
-                </div>
-              </div>
-            </div>
-            <div className="border-t pt-6">
-              <h3 className="text-lg font-semibold text-primary mb-2">2nd Inning</h3>
-              <p>Total Runs: <strong className="text-accent-foreground">{inning2Stats.runs}</strong></p>
-              <p>Total Wickets: <strong className="text-accent-foreground">{inning2Stats.wickets}</strong></p>
-              <div className="mt-3">
-                <h4 className="text-sm font-medium text-muted-foreground mb-1">Scores Entered:</h4>
-                 <div className="grid grid-cols-4 sm:grid-cols-5 gap-1 text-xs mt-1 max-h-40 overflow-y-auto p-2 border rounded-md bg-background">
-                  {inning2Scores.filter(s => s.trim() !== "").length > 0 ? (
-                    inning2Scores.map((score, index) => (
-                      score.trim() !== "" && <span key={`inning2-detail-${index}`} className="p-1.5 bg-muted/70 rounded text-center shadow-sm">{score}</span>
-                    ))
-                  ) : (
-                    <span className="col-span-full text-center p-2 text-muted-foreground">No scores entered for 2nd Inning.</span>
-                  )}
-                </div>
-              </div>
-            </div>
-          </div>
-          <DialogFooter>
-            <Button variant="outline" onClick={() => setIsDetailModalOpen(false)}>Close</Button>
-          </DialogFooter>
-        </DialogContent>
-      </Dialog>
-
+      {/* Detailed Inning Data Dialog is removed */}
     </div>
   );
 }
-    
