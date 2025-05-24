@@ -1,7 +1,7 @@
 
 "use client";
 
-import React, { useState, useEffect, useMemo, useRef } from "react";
+import React, { useState, useEffect, useRef } from "react";
 import { Input } from "@/components/ui/input";
 import { Card, CardContent, CardFooter, CardHeader, CardTitle } from "@/components/ui/card";
 import { AlertCircle } from "lucide-react";
@@ -12,12 +12,12 @@ interface InningColumnProps {
   scores: string[];
   onScoresUpdate: (scores: string[]) => void;
   inningStats: { runs: number; wickets: number };
+  teamName: string; // Added teamName prop
 }
 
 const SCORE_BOX_COUNT = 17;
-const MAX_INPUT_LENGTH = 10; // Increased max input length
+const MAX_INPUT_LENGTH = 10; 
 
-// Custom hook to get the previous value of a prop or state
 function usePrevious<T>(value: T): T | undefined {
   const ref = useRef<T>();
   useEffect(() => {
@@ -27,17 +27,20 @@ function usePrevious<T>(value: T): T | undefined {
 }
 
 const isValidInput = (val: string): boolean => {
-  if (val === '') return true; // Empty is valid
+  const trimmedVal = val.trim();
+  if (trimmedVal === '') return true; 
+  
   // Allows:
   // - Number (runs): "0", "6", "10", "123"
   // - 'W' (wicket)
   // - Number + '/' + optional Number (runs/wickets): "4/", "4/1", "10/23"
   // - '/' + Number (0 runs/wickets): "/1", "/10"
-  const regex = /^(\d+)$|^W$|^(\d+\/\d*)$|^(\/\d+)$/;
-  return regex.test(val);
+  // - Also allows for partial inputs like "4/" or "/" to avoid premature error
+  const regex = /^(\d*)$|^W$|^(\d*\/\d*)$|^(\/\d*)$/;
+  return regex.test(trimmedVal);
 };
 
-export function InningColumn({ inningNumber, scores: initialScores, onScoresUpdate, inningStats }: InningColumnProps) {
+export function InningColumn({ inningNumber, scores: initialScores, onScoresUpdate, inningStats, teamName }: InningColumnProps) {
   const [inputValues, setInputValues] = useState<string[]>(() => 
     initialScores.length === SCORE_BOX_COUNT ? initialScores : Array(SCORE_BOX_COUNT).fill("")
   );
@@ -61,28 +64,30 @@ export function InningColumn({ inningNumber, scores: initialScores, onScoresUpda
 
   const handleInputChange = (index: number, value: string) => {
     const newValues = [...inputValues];
-    const processedValue = value.toUpperCase().trim().slice(0, MAX_INPUT_LENGTH);
+    // No trim() here to allow spaces during typing, it's handled in validation/calculation
+    const processedValue = value.toUpperCase().slice(0, MAX_INPUT_LENGTH);
     newValues[index] = processedValue;
     setInputValues(newValues);
 
     const isValid = isValidInput(processedValue);
     const newErrors = [...inputErrors];
-    newErrors[index] = !isValid && processedValue !== '';
+    // Show error only if not valid AND not empty (and not just a partially valid like "4/")
+    newErrors[index] = !isValid && processedValue.trim() !== '' && !/^\d+\/$/.test(processedValue.trim()) && !/^\/$/.test(processedValue.trim());
     setInputErrors(newErrors);
 
     onScoresUpdate(newValues);
   };
 
   return (
-    <Card className="w-full md:w-auto md:min-w-[300px] shadow-lg bg-blue-500/50 dark:bg-blue-700/70">
+    <Card className="w-full md:w-auto md:min-w-[320px] shadow-lg bg-card dark:bg-card">
       <CardHeader>
-        <CardTitle className="text-primary">{inningNumber === 1 ? "1st Inning" : "2nd Inning"}</CardTitle>
+        <CardTitle className="text-primary">{teamName} - {inningNumber === 1 ? "1st Inning" : "2nd Inning"}</CardTitle>
       </CardHeader>
       <CardContent className="space-y-2">
         {Array.from({ length: SCORE_BOX_COUNT }).map((_, index) => (
           <div key={index} className="flex items-center gap-2">
             <label htmlFor={`inning-${inningNumber}-score-${index}`} className="sr-only">
-              Score for ball {index + 1}
+              {teamName} - Inning {inningNumber} - Score entry {index + 1}
             </label>
             <Input
               id={`inning-${inningNumber}-score-${index}`}
@@ -91,8 +96,8 @@ export function InningColumn({ inningNumber, scores: initialScores, onScoresUpda
               onChange={(e) => handleInputChange(index, e.target.value)}
               maxLength={MAX_INPUT_LENGTH}
               className={cn(
-                "h-9 w-32 text-center transition-colors duration-300", // Increased width to w-32
-                "bg-background dark:bg-slate-900", 
+                "h-9 w-36 text-center transition-colors duration-300", 
+                "bg-background dark:bg-slate-800", 
                 inputErrors[index] ? "border-destructive ring-destructive ring-1" : "focus:ring-ring"
               )}
               aria-invalid={inputErrors[index]}
@@ -121,3 +126,5 @@ export function InningColumn({ inningNumber, scores: initialScores, onScoresUpda
     </Card>
   );
 }
+
+    
