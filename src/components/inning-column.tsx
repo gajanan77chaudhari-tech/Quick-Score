@@ -1,7 +1,7 @@
 
 "use client";
 
-import React, { useState, useEffect, useRef } from "react";
+import React, { useState, useEffect } from "react";
 import { Input } from "@/components/ui/input";
 import { Card, CardContent, CardFooter, CardHeader, CardTitle } from "@/components/ui/card";
 import { AlertCircle } from "lucide-react";
@@ -16,14 +16,6 @@ interface InningColumnProps {
 
 const SCORE_BOX_COUNT = 17;
 const MAX_INPUT_LENGTH = 10; 
-
-function usePrevious<T>(value: T): T | undefined {
-  const ref = useRef<T>();
-  useEffect(() => {
-    ref.current = value;
-  }, [value]);
-  return ref.current;
-}
 
 const isValidInput = (val: string): boolean => {
   const trimmedVal = val.trim();
@@ -45,22 +37,10 @@ export function InningColumn({ inningNumber, scores: initialScores, onScoresUpda
     initialScores.length === SCORE_BOX_COUNT ? initialScores : Array(SCORE_BOX_COUNT).fill("")
   );
   const [inputErrors, setInputErrors] = useState<boolean[]>(Array(SCORE_BOX_COUNT).fill(false));
-  const [highlightScore, setHighlightScore] = useState(false);
 
   useEffect(() => {
     setInputValues(initialScores.length === SCORE_BOX_COUNT ? initialScores : Array(SCORE_BOX_COUNT).fill(""));
   }, [initialScores]);
-
-  const prevRuns = usePrevious(inningStats.runs);
-  const prevWickets = usePrevious(inningStats.wickets);
-
-  useEffect(() => {
-    if (prevRuns !== undefined && prevWickets !== undefined && (inningStats.runs !== prevRuns || inningStats.wickets !== prevWickets)) {
-      setHighlightScore(true);
-      const timer = setTimeout(() => setHighlightScore(false), 500);
-      return () => clearTimeout(timer);
-    }
-  }, [inningStats.runs, inningStats.wickets, prevRuns, prevWickets]);
 
   const handleInputChange = (index: number, value: string) => {
     const newValues = [...inputValues];
@@ -113,12 +93,7 @@ export function InningColumn({ inningNumber, scores: initialScores, onScoresUpda
         ))}
       </CardContent>
       <CardFooter>
-        <p 
-          className={cn(
-            "text-lg font-semibold transition-all duration-300 p-1 rounded text-gray-100",
-            highlightScore ? "bg-accent/30" : ""
-          )}
-        >
+        <p className="text-lg font-semibold p-1 rounded text-foreground">
           Total: {inningStats.runs} runs, {inningStats.wickets} wickets
         </p>
       </CardFooter>

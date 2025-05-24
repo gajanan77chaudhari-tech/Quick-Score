@@ -41,14 +41,6 @@ const calculateInningStats = (scores: string[]): { runs: number; wickets: number
   return { runs, wickets };
 };
 
-function usePrevious<T>(value: T): T | undefined {
-  const ref = useRef<T>();
-  useEffect(() => {
-    ref.current = value;
-  }, [value]);
-  return ref.current;
-}
-
 export default function ScoreScribePage() {
   const [inning1Scores, setInning1Scores] = useState<string[]>(Array(SCORE_BOX_COUNT).fill(""));
   const [inning2Scores, setInning2Scores] = useState<string[]>(Array(SCORE_BOX_COUNT).fill(""));
@@ -59,28 +51,6 @@ export default function ScoreScribePage() {
 
   const inning1Stats = useMemo(() => calculateInningStats(inning1Scores), [inning1Scores]);
   const inning2Stats = useMemo(() => calculateInningStats(inning2Scores), [inning2Scores]);
-
-  const [highlightSummary1, setHighlightSummary1] = useState(false);
-  const [highlightSummary2, setHighlightSummary2] = useState(false);
-  
-  const prevInning1Stats = usePrevious(inning1Stats);
-  const prevInning2Stats = usePrevious(inning2Stats);
-
-  useEffect(() => {
-    if (prevInning1Stats && (inning1Stats.runs !== prevInning1Stats.runs || inning1Stats.wickets !== prevInning1Stats.wickets)) {
-      setHighlightSummary1(true);
-      const timer = setTimeout(() => setHighlightSummary1(false), 500);
-      return () => clearTimeout(timer);
-    }
-  }, [inning1Stats, prevInning1Stats]);
-
-  useEffect(() => {
-     if (prevInning2Stats && (inning2Stats.runs !== prevInning2Stats.runs || inning2Stats.wickets !== prevInning2Stats.wickets)) {
-      setHighlightSummary2(true);
-      const timer = setTimeout(() => setHighlightSummary2(false), 500);
-      return () => clearTimeout(timer);
-    }
-  }, [inning2Stats, prevInning2Stats]);
 
   const handleResetGame = () => {
     setInning1Scores(Array(SCORE_BOX_COUNT).fill(""));
@@ -116,10 +86,10 @@ export default function ScoreScribePage() {
                 className="mt-1 h-9"
               />
             </div>
-            <p className={cn("p-1 rounded transition-all duration-300", highlightSummary1 ? "bg-accent/30" : "")}>
+            <p className="p-1 rounded">
               1st Inning: <strong>{inning1Stats.runs} runs</strong>, <strong>{inning1Stats.wickets} wickets</strong>
             </p>
-            <p className={cn("p-1 rounded transition-all duration-300", highlightSummary2 ? "bg-accent/30" : "")}>
+            <p className="p-1 rounded">
               2nd Inning: <strong>{inning2Stats.runs} runs</strong>, <strong>{inning2Stats.wickets} wickets</strong>
             </p>
           </CardContent>
