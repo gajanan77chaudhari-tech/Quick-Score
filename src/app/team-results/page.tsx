@@ -12,7 +12,7 @@ import { ArrowLeft } from 'lucide-react';
 function TeamResultsContent() {
   const searchParams = useSearchParams();
 
-  const teamName = searchParams.get('team') || "Team";
+  const teamNameFromUrl = searchParams.get('team'); // Can be null or string
   const scores1String = searchParams.get('scores1');
   const scores2String = searchParams.get('scores2');
 
@@ -31,6 +31,9 @@ function TeamResultsContent() {
     // Handle error or set default empty scores
   }
 
+  const displayTeamName = teamNameFromUrl?.trim() || "";
+  const pageTitle = displayTeamName ? `${displayTeamName} - Scorecard` : "Scorecard";
+
   return (
     <div className="p-4 sm:p-6 md:p-8 flex flex-col items-center gap-8 min-h-screen w-full">
       <header className="text-center w-full mt-8 mb-6">
@@ -42,18 +45,18 @@ function TeamResultsContent() {
             </Link>
           </Button>
         </div>
-        <h1 className="text-4xl font-bold text-primary">{teamName} - Scorecard</h1>
+        <h1 className="text-4xl font-bold text-primary">{pageTitle}</h1>
       </header>
 
       <main className="flex flex-col md:flex-row gap-6 md:gap-8 w-full items-start justify-center">
         <ResultsInningColumn
           inningNumber={1}
-          teamName={teamName}
+          teamName={displayTeamName} // Pass the potentially empty (after trim) team name
           scores={inning1Scores}
         />
         <ResultsInningColumn
           inningNumber={2}
-          teamName={teamName}
+          teamName={displayTeamName} // Pass the same team name
           scores={inning2Scores}
         />
       </main>

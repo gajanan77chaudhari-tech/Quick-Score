@@ -9,13 +9,16 @@ import { cn } from "@/lib/utils";
 
 interface ResultsInningColumnProps {
   inningNumber: 1 | 2;
-  teamName: string;
+  teamName: string; // Will receive the team name, possibly empty
   scores: string[];
 }
 
 export function ResultsInningColumn({ inningNumber, teamName, scores }: ResultsInningColumnProps) {
   const inningLabel = inningNumber === 1 ? "1st Inning" : "2nd Inning";
-  const cardTitle = teamName ? `${teamName} - ${inningLabel}` : inningLabel;
+  const trimmedTeamName = teamName.trim(); // Trim to handle names with only spaces
+  
+  // Conditionally create the card title
+  const cardTitle = trimmedTeamName ? `${trimmedTeamName} - ${inningLabel}` : inningLabel;
 
   const processedScores = scores.map(score => ({
     original: score,
