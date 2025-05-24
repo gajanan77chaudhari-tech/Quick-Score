@@ -12,16 +12,15 @@ import {
   DropdownMenuItem,
   DropdownMenuTrigger,
 } from "@/components/ui/dropdown-menu";
-import { Settings, RotateCcw } from "lucide-react";
+import { Settings, RotateCcw, Palette } from "lucide-react"; // Added Palette icon
 
-const SCORE_BOX_COUNT = 17; // Consistent with InningColumn
+const SCORE_BOX_COUNT = 17; 
 
-// Helper function to calculate runs and wickets from an array of score strings
 const calculateInningStats = (scores: string[]): { runs: number; wickets: number } => {
   let runs = 0;
   let wickets = 0;
   scores.forEach(scoreEntry => {
-    const s = scoreEntry.toUpperCase().trim(); // Normalize input
+    const s = scoreEntry.toUpperCase().trim();
     if (!s) return;
 
     if (s.includes('/')) {
@@ -37,19 +36,30 @@ const calculateInningStats = (scores: string[]): { runs: number; wickets: number
       }
     } else if (s === 'W') {
       wickets += 1;
-    } else if (/^\d+$/.test(s)) { // Only digits means runs
+    } else if (/^\d+$/.test(s)) {
       runs += parseInt(s, 10);
     }
-    // Other formats are ignored for calculation
   });
   return { runs, wickets };
 };
+
+const colorOptions = [
+  { name: 'Default', value: '', swatchClass: 'bg-accent/10 dark:bg-accent/20 border' },
+  { name: 'Sky', value: 'bg-sky-100 dark:bg-sky-800', swatchClass: 'bg-sky-100 dark:bg-sky-800' },
+  { name: 'Mint', value: 'bg-emerald-100 dark:bg-emerald-800', swatchClass: 'bg-emerald-100 dark:bg-emerald-800' },
+  { name: 'Amber', value: 'bg-yellow-100 dark:bg-yellow-800', swatchClass: 'bg-yellow-100 dark:bg-yellow-800' },
+  { name: 'Rose', value: 'bg-pink-100 dark:bg-pink-800', swatchClass: 'bg-pink-100 dark:bg-pink-800' },
+  { name: 'Violet', value: 'bg-purple-100 dark:bg-purple-800', swatchClass: 'bg-purple-100 dark:bg-purple-800' },
+];
+
 
 export default function ScoreScribePage() {
   const [inning1Scores, setInning1Scores] = useState<string[]>(Array(SCORE_BOX_COUNT).fill(""));
   const [inning2Scores, setInning2Scores] = useState<string[]>(Array(SCORE_BOX_COUNT).fill(""));
   const [teamName, setTeamName] = useState<string>(""); 
-  
+  const [teamNameInputBgColor, setTeamNameInputBgColor] = useState<string>("");
+
+
   const inning1Stats = useMemo(() => calculateInningStats(inning1Scores), [inning1Scores]);
   const inning2Stats = useMemo(() => calculateInningStats(inning2Scores), [inning2Scores]);
 
@@ -57,6 +67,7 @@ export default function ScoreScribePage() {
     setTeamName("");
     setInning1Scores(Array(SCORE_BOX_COUNT).fill(""));
     setInning2Scores(Array(SCORE_BOX_COUNT).fill(""));
+    setTeamNameInputBgColor(""); // Reset background color
   };
 
   return (
@@ -73,24 +84,44 @@ export default function ScoreScribePage() {
               <RotateCcw className="mr-2 h-4 w-4" />
               <span>Reset Scores</span>
             </DropdownMenuItem>
-            {/* Future options can be added here */}
           </DropdownMenuContent>
         </DropdownMenu>
       </div>
 
       <header className="text-center w-full mt-12 sm:mt-10 md:mt-8">
-        <div className="mt-4">
+        <div className="mt-4 relative flex items-center justify-center md:max-w-md lg:max-w-lg mx-auto group">
           <Input
             type="text"
             placeholder="Enter Team Name"
             value={teamName}
             onChange={(e) => setTeamName(e.target.value)}
             className={cn(
-              "text-center text-3xl font-semibold text-foreground bg-accent/10 dark:bg-accent/20 border-primary focus:ring-primary placeholder:text-muted-foreground/70",
-              "w-full md:max-w-md lg:max-w-lg mx-auto" 
+              "text-center text-3xl font-semibold text-foreground placeholder:text-muted-foreground/70",
+              "flex-grow py-2", // Adjusted padding for height consistency
+              teamNameInputBgColor ? teamNameInputBgColor : "bg-accent/10 dark:bg-accent/20",
+              "border-primary focus:ring-primary rounded-md" // Ensure rounded corners and focus ring
             )}
             aria-label="Team Name"
           />
+          <DropdownMenu>
+            <DropdownMenuTrigger asChild>
+              <Button variant="ghost" size="icon" className="ml-2 shrink-0" aria-label="Change team name background color">
+                <Palette className="h-5 w-5" />
+              </Button>
+            </DropdownMenuTrigger>
+            <DropdownMenuContent align="end">
+              <DropdownMenuItem onClick={() => setTeamNameInputBgColor("")}>
+                 <div className={cn("w-4 h-4 mr-2 rounded-sm border", colorOptions[0].swatchClass)}></div>
+                {colorOptions[0].name}
+              </DropdownMenuItem>
+              {colorOptions.slice(1).map((option) => (
+                <DropdownMenuItem key={option.name} onClick={() => setTeamNameInputBgColor(option.value)} className="cursor-pointer">
+                  <div className={cn("w-4 h-4 mr-2 rounded-sm border", option.swatchClass)}></div>
+                  <span>{option.name}</span>
+                </DropdownMenuItem>
+              ))}
+            </DropdownMenuContent>
+          </DropdownMenu>
         </div>
       </header>
 
