@@ -32,11 +32,11 @@ export function FilteredInningColumn({
     ? `${filterTeamName.trim()} - ${inningLabel}`
     : inningLabel;
 
-  const { displayedEntries, totalRuns, totalWickets, totalLegalBalls } = useMemo(() => {
+  const { displayedEntries, totalRuns, totalWickets } = useMemo(() => {
     const entries: DisplayEntry[] = [];
     let runs = 0;
     let wickets = 0;
-    let legalBalls = 0;
+    let legalBalls = 0; // Kept for consistency with parser, though not directly displayed in footer
 
     const trimmedFilterName = filterTeamName.trim().toLowerCase();
 
@@ -65,13 +65,6 @@ export function FilteredInningColumn({
     return { displayedEntries: entries, totalRuns: runs, totalWickets: wickets, totalLegalBalls: legalBalls };
   }, [allScores, allEventDetails, filterTeamName]);
 
-  // Overs calculation is kept for potential future use, but not displayed.
-  const overs = useMemo(() => {
-    const fullOvers = Math.floor(totalLegalBalls / 6);
-    const ballsInCurrentOver = totalLegalBalls % 6;
-    return `${fullOvers}.${ballsInCurrentOver}`;
-  }, [totalLegalBalls]);
-
   return (
     <Card className={cn(
         "w-full md:w-auto md:min-w-[300px] shadow-lg", 
@@ -84,18 +77,15 @@ export function FilteredInningColumn({
         {displayedEntries.length === 0 ? (
           <p>No scores recorded for {filterTeamName.trim() || "this inning"}.</p>
         ) : (
-          <div className="grid grid-cols-[1fr_auto_1fr] gap-x-2 items-center">
+          <div className="grid grid-cols-[1fr_auto] gap-x-4 items-center"> {/* Adjusted grid columns */}
             <span className="font-semibold col-span-1">Score Entry</span>
             <span className="font-semibold col-span-1 text-center px-1">Team</span>
-            <span className="font-semibold col-span-1 text-right">Parsed (R/W)</span>
+            {/* Removed "Parsed (R/W)" header */}
             {displayedEntries.map((entry, index) => (
               <React.Fragment key={index}>
                 <span className="py-1 truncate col-span-1">{entry.originalScore}</span>
                 <span className="py-1 truncate col-span-1 text-center px-1">{entry.originalDetail || "-"}</span>
-                <span className="py-1 truncate col-span-1 text-right">
-                    {entry.parsedRuns}R / {entry.parsedWickets}W
-                    {!entry.isLegal ? <span className="text-xs opacity-80 ml-1">(NL)</span> : ""}
-                </span>
+                {/* Removed parsed data display column */}
               </React.Fragment>
             ))}
           </div>
@@ -109,5 +99,4 @@ export function FilteredInningColumn({
     </Card>
   );
 }
-
     
