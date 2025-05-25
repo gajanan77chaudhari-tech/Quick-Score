@@ -65,6 +65,7 @@ export function FilteredInningColumn({
     return { displayedEntries: entries, totalRuns: runs, totalWickets: wickets, totalLegalBalls: legalBalls };
   }, [allScores, allEventDetails, filterTeamName]);
 
+  // Overs calculation is kept for potential future use, but not displayed.
   const overs = useMemo(() => {
     const fullOvers = Math.floor(totalLegalBalls / 6);
     const ballsInCurrentOver = totalLegalBalls % 6;
@@ -103,7 +104,6 @@ export function FilteredInningColumn({
       <CardFooter>
         <p className="text-lg font-semibold text-gray-100">
           Total: {totalRuns} runs, {totalWickets} wickets
-          {totalLegalBalls > 0 && ` in ${overs} overs`}
         </p>
       </CardFooter>
     </Card>
