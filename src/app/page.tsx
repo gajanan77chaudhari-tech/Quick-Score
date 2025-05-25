@@ -17,7 +17,7 @@ import {
 } from "@/components/ui/dropdown-menu";
 import { Settings, RotateCcw, Palette, FileText, NotebookPen } from "lucide-react";
 import { ScrollArea } from "@/components/ui/scroll-area";
-import { calculateTotalStats, getCanonicalTeamName } from "@/lib/score-parser"; // Import getCanonicalTeamName
+import { calculateTotalStats, getCanonicalTeamName } from "@/lib/score-parser"; 
 import { useToast } from "@/hooks/use-toast";
 
 const SCORE_BOX_COUNT = 17; 
@@ -771,6 +771,19 @@ const parseColorList = (list: string): { name: string; hex: string }[] => {
 
 const extensiveColorOptions = parseColorList(userColorList);
 
+const predefinedTeamNames = [
+  "Chennai Super Kings",
+  "Delhi Capitals",
+  "Gujarat Titans",
+  "Kolkata Knight Riders",
+  "Lucknow Super Giants",
+  "Mumbai Indians",
+  "Punjab Kings",
+  "Rajasthan Royals",
+  "Royal Challengers Bengaluru",
+  "Sunrisers Hyderabad"
+];
+
 const loadStateFromLocalStorage = () => {
   if (typeof window === 'undefined') {
     return null;
@@ -795,7 +808,7 @@ export default function ScoreScribePage() {
   const [inning2Scores, setInning2Scores] = useState<string[]>(() => Array(SCORE_BOX_COUNT).fill(""));
   const [inning1EventDetails, setInning1EventDetails] = useState<string[]>(() => Array(SCORE_BOX_COUNT).fill(""));
   const [inning2EventDetails, setInning2EventDetails] = useState<string[]>(() => Array(SCORE_BOX_COUNT).fill(""));
-  const [teamName, setTeamName] = useState<string>(""); // Raw team name input by user
+  const [teamName, setTeamName] = useState<string>(""); 
   const [teamNameInputBgColor, setTeamNameInputBgColor] = useState<string>("");
 
 
@@ -850,8 +863,8 @@ export default function ScoreScribePage() {
   };
   
   const handleGenerateSummary = () => {
-    const summaryTitle = teamName.trim() ? `${teamName.trim()}'s Game Summary` : "Game Summary";
-    const canonicalTeamNameForSummary = getCanonicalTeamName(teamName); // Use canonical for display in toast if preferred
+    const summaryTitle = teamName.trim() ? `${getCanonicalTeamName(teamName).toUpperCase()}'s Game Summary` : "Game Summary";
+    const canonicalTeamNameForSummary = getCanonicalTeamName(teamName); 
     
     let inning1Text;
     if (inning1Stats.runs > 0 || inning1Stats.wickets > 0 || inning1Stats.balls > 0) {
@@ -887,13 +900,17 @@ export default function ScoreScribePage() {
       return;
     }
     const queryParams = new URLSearchParams();
-    queryParams.append("teamName", canonicalFilterTeamName); // Pass canonical name
+    queryParams.append("teamName", canonicalFilterTeamName); 
     queryParams.append("inning1Scores", JSON.stringify(inning1Scores));
     queryParams.append("inning1EventDetails", JSON.stringify(inning1EventDetails));
     queryParams.append("inning2Scores", JSON.stringify(inning2Scores));
     queryParams.append("inning2EventDetails", JSON.stringify(inning2EventDetails));
     
     router.push(`/filtered-scorecard?${queryParams.toString()}`);
+  };
+
+  const handleSelectTeam = (selectedTeam: string) => {
+    setTeamName(selectedTeam);
   };
 
   return (
@@ -915,6 +932,13 @@ export default function ScoreScribePage() {
               <FileText className="mr-2 h-4 w-4" />
               <span>Generate Game Summary</span>
             </DropdownMenuItem>
+            <DropdownMenuSeparator />
+            <DropdownMenuLabel>Select a Team</DropdownMenuLabel>
+            {predefinedTeamNames.map((name) => (
+              <DropdownMenuItem key={name} onClick={() => handleSelectTeam(name)} className="cursor-pointer">
+                {name}
+              </DropdownMenuItem>
+            ))}
           </DropdownMenuContent>
         </DropdownMenu>
       </div>
@@ -925,7 +949,7 @@ export default function ScoreScribePage() {
             <Input
               type="text"
               placeholder="Team Name"
-              value={teamName} // Displays raw user input
+              value={teamName} 
               onChange={(e) => setTeamName(e.target.value)}
               className={cn(
                 "text-center text-3xl font-semibold text-foreground placeholder:text-muted-foreground/70",
