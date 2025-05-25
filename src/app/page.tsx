@@ -951,7 +951,7 @@ export default function ScoreScribePage() {
     router.push(`/filtered-scorecard?${queryParams.toString()}`);
   };
   
-  const handleGenerateSummary = () => {
+  const handleManageTeamData = () => { // Renamed from handleGenerateSummary
     const canonicalTeam = getCanonicalTeamName(teamName);
     const teamDisplayName = teamName.trim() || "Overall";
 
@@ -968,7 +968,7 @@ export default function ScoreScribePage() {
     summary += formatInningSummary(2, inning2Stats);
 
     toast({
-      title: "Game Summary",
+      title: "Game Summary", // Toast title remains the same, as the action is still a summary
       description: (
         <pre className="mt-2 w-[340px] rounded-md bg-slate-950 p-4 overflow-x-auto">
           <code className="text-white">{summary}</code>
@@ -993,9 +993,9 @@ export default function ScoreScribePage() {
               <RotateCcw className="mr-2 h-4 w-4" />
               <span>Reset Current Team Scores</span>
             </DropdownMenuItem>
-             <DropdownMenuItem onClick={handleGenerateSummary} className="cursor-pointer">
+             <DropdownMenuItem onClick={handleManageTeamData} className="cursor-pointer">
               <FileText className="mr-2 h-4 w-4" />
-              <span>Generate Game Summary</span>
+              <span>Manage Team Data</span>
             </DropdownMenuItem>
             <DropdownMenuSeparator />
              <DropdownMenuSub>
@@ -1094,5 +1094,7 @@ export default function ScoreScribePage() {
     </div>
   );
 }
+
+    
 
     
