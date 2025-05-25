@@ -1094,14 +1094,13 @@ export default function ScoreScribePage() {
               value={teamName}
               onChange={(e) => setTeamName(e.target.value)}
               className={cn(
-                "text-center text-3xl font-semibold placeholder:text-muted-foreground/70",
+                "text-center text-3xl font-semibold text-foreground placeholder:text-muted-foreground/70",
                 "flex-grow py-2",
                 !teamNameInputBgColor && "bg-accent/10 dark:bg-accent/20",
                 "border-primary focus:ring-primary rounded-md"
               )}
               style={{
                 backgroundColor: teamNameInputBgColor || undefined,
-                color: isDataEntered ? '#FF00FF' : undefined
               }}
               aria-label="Team Name"
             />
@@ -1163,4 +1162,5 @@ export default function ScoreScribePage() {
     </div>
   );
 }
+
 
