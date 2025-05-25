@@ -2,7 +2,7 @@
 "use client";
 
 import React, { useState, useMemo, useEffect, Suspense } from "react";
-import { useRouter, useSearchParams } from "next/navigation";
+import { useRouter } from "next/navigation";
 import { InningColumn } from "@/components/inning-column";
 import { Input } from "@/components/ui/input";
 import { cn } from "@/lib/utils";
@@ -805,6 +805,13 @@ const defaultAppState: Omit<AppState, 'teamName'> = {
   teamNameInputBgColor: "",
 };
 
+const teamHasData = (state: AppState | null): boolean => {
+  if (!state) return false;
+  return state.inning1Scores.some(s => s.trim() !== "") ||
+         state.inning2Scores.some(s => s.trim() !== "") ||
+         state.inning1EventDetails.some(s => s.trim() !== "") ||
+         state.inning2EventDetails.some(s => s.trim() !== "");
+};
 
 const loadStateForTeam = (teamKey: string): AppState | null => {
   if (typeof window === 'undefined' || !teamKey) {
@@ -816,14 +823,16 @@ const loadStateForTeam = (teamKey: string): AppState | null => {
       return null;
     }
     const parsedState = JSON.parse(serializedState);
+    // Ensure all fields from defaultAppState are present, especially for older saved states
     return {
-      ...defaultAppState, 
-      ...parsedState,     
-      teamName: parsedState.teamName || "", 
-      inning1Scores: parsedState.inning1Scores || Array(SCORE_BOX_COUNT).fill(""),
-      inning2Scores: parsedState.inning2Scores || Array(SCORE_BOX_COUNT).fill(""),
-      inning1EventDetails: parsedState.inning1EventDetails || Array(SCORE_BOX_COUNT).fill(""),
-      inning2EventDetails: parsedState.inning2EventDetails || Array(SCORE_BOX_COUNT).fill(""),
+      ...defaultAppState, // Start with defaults
+      ...parsedState,     // Override with saved values
+      teamName: parsedState.teamName || "", // Ensure teamName is at least an empty string
+      // Explicitly ensure arrays have the correct length if they were saved with a different length or are missing
+      inning1Scores: Array.isArray(parsedState.inning1Scores) && parsedState.inning1Scores.length === SCORE_BOX_COUNT ? parsedState.inning1Scores : Array(SCORE_BOX_COUNT).fill(""),
+      inning2Scores: Array.isArray(parsedState.inning2Scores) && parsedState.inning2Scores.length === SCORE_BOX_COUNT ? parsedState.inning2Scores : Array(SCORE_BOX_COUNT).fill(""),
+      inning1EventDetails: Array.isArray(parsedState.inning1EventDetails) && parsedState.inning1EventDetails.length === SCORE_BOX_COUNT ? parsedState.inning1EventDetails : Array(SCORE_BOX_COUNT).fill(""),
+      inning2EventDetails: Array.isArray(parsedState.inning2EventDetails) && parsedState.inning2EventDetails.length === SCORE_BOX_COUNT ? parsedState.inning2EventDetails : Array(SCORE_BOX_COUNT).fill(""),
       teamNameInputBgColor: parsedState.teamNameInputBgColor || ""
     };
   } catch (error) {
@@ -831,19 +840,6 @@ const loadStateForTeam = (teamKey: string): AppState | null => {
     return null;
   }
 };
-
-const saveStateForTeam = (teamKey: string, state: AppState) => {
-  if (typeof window === 'undefined' || !teamKey) {
-    return;
-  }
-  try {
-    const serializedState = JSON.stringify(state);
-    localStorage.setItem(LOCAL_STORAGE_KEY_PREFIX + teamKey, serializedState);
-  } catch (error) {
-    console.error("Error saving state to localStorage for team:", teamKey, error);
-  }
-};
-
 
 export default function ScoreScribePage() {
   const router = useRouter();
@@ -855,10 +851,50 @@ export default function ScoreScribePage() {
   const [inning1EventDetails, setInning1EventDetails] = useState<string[]>(() => Array(SCORE_BOX_COUNT).fill(""));
   const [inning2EventDetails, setInning2EventDetails] = useState<string[]>(() => Array(SCORE_BOX_COUNT).fill(""));
   const [teamNameInputBgColor, setTeamNameInputBgColor] = useState<string>("");
+  const [isDataEntered, setIsDataEntered] = useState<boolean>(false);
+  const [highlightedTeamsMap, setHighlightedTeamsMap] = useState<Record<string, boolean>>({});
 
+
+  const saveStateForTeam = (teamKey: string, stateToSave: AppState) => {
+    if (typeof window === 'undefined' || !teamKey) {
+      return;
+    }
+    try {
+      const serializedState = JSON.stringify(stateToSave);
+      localStorage.setItem(LOCAL_STORAGE_KEY_PREFIX + teamKey, serializedState);
+      const hasData = teamHasData(stateToSave);
+      setHighlightedTeamsMap(prev => ({ ...prev, [teamKey]: hasData }));
+    } catch (error) {
+      console.error("Error saving state to localStorage for team:", teamKey, error);
+    }
+  };
+  
   useEffect(() => {
-    // Initial load logic could be placed here if needed, e.g., load last active team
-  }, []);
+    const initialHighlights: Record<string, boolean> = {};
+    predefinedTeamNames.forEach(name => {
+      const canonicalKey = getCanonicalTeamName(name);
+      const storedState = loadStateForTeam(canonicalKey);
+      initialHighlights[canonicalKey] = teamHasData(storedState);
+    });
+    setHighlightedTeamsMap(initialHighlights);
+
+    // Attempt to load state for the last active team or a default team if desired
+    // For now, let's assume no team is active on initial load, or it could be the first predefined team
+    // const lastActiveTeamKey = localStorage.getItem("scoreScribeLastActiveTeam");
+    // if (lastActiveTeamKey) {
+    //   const loadedState = loadStateForTeam(lastActiveTeamKey);
+    //   if (loadedState) {
+    //     setTeamName(loadedState.teamName); // This will show the name in the input
+    //     setInning1Scores(loadedState.inning1Scores);
+    //     setInning2Scores(loadedState.inning2Scores);
+    //     setInning1EventDetails(loadedState.inning1EventDetails);
+    //     setInning2EventDetails(loadedState.inning2EventDetails);
+    //     setTeamNameInputBgColor(loadedState.teamNameInputBgColor);
+    //   }
+    // }
+  // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, []); // Runs once on mount
+
 
   useEffect(() => {
     const canonicalKey = getCanonicalTeamName(teamName);
@@ -872,8 +908,21 @@ export default function ScoreScribePage() {
         teamNameInputBgColor,
       };
       saveStateForTeam(canonicalKey, currentState);
+      // localStorage.setItem("scoreScribeLastActiveTeam", canonicalKey); // Save last active team
     }
   }, [teamName, inning1Scores, inning2Scores, inning1EventDetails, inning2EventDetails, teamNameInputBgColor]);
+
+
+  useEffect(() => {
+    const dataExists =
+      teamName.trim() !== "" ||
+      inning1Scores.some(score => score.trim() !== "") ||
+      inning2Scores.some(score => score.trim() !== "") ||
+      inning1EventDetails.some(detail => detail.trim() !== "") ||
+      inning2EventDetails.some(detail => detail.trim() !== "");
+    setIsDataEntered(dataExists);
+  }, [teamName, inning1Scores, inning2Scores, inning1EventDetails, inning2EventDetails]);
+
 
   const inning1Stats = useMemo(() => calculateTotalStats(inning1Scores, inning1EventDetails, teamName), [inning1Scores, inning1EventDetails, teamName]);
   const inning2Stats = useMemo(() => calculateTotalStats(inning2Scores, inning2EventDetails, teamName), [inning2Scores, inning2EventDetails, teamName]);
@@ -882,6 +931,7 @@ export default function ScoreScribePage() {
     const canonicalKey = getCanonicalTeamName(teamName);
     if (canonicalKey && typeof window !== 'undefined') {
       localStorage.removeItem(LOCAL_STORAGE_KEY_PREFIX + canonicalKey);
+      setHighlightedTeamsMap(prev => ({ ...prev, [canonicalKey]: false }));
     }
     setTeamName("");
     setInning1Scores(Array(SCORE_BOX_COUNT).fill(""));
@@ -889,6 +939,7 @@ export default function ScoreScribePage() {
     setInning1EventDetails(Array(SCORE_BOX_COUNT).fill(""));
     setInning2EventDetails(Array(SCORE_BOX_COUNT).fill(""));
     setTeamNameInputBgColor("");
+    // localStorage.removeItem("scoreScribeLastActiveTeam");
     toast({
       title: "Scores Reset",
       description: `Data for ${teamName || 'the current session'} has been cleared.`,
@@ -897,7 +948,7 @@ export default function ScoreScribePage() {
 
   const handleSelectTeam = (selectedTeamFullName: string) => {
     const currentCanonicalKey = getCanonicalTeamName(teamName);
-    if (currentCanonicalKey) {
+    if (currentCanonicalKey && teamName.trim() !== "") { // Save only if there was an active team
       const currentState: AppState = {
         teamName,
         inning1Scores,
@@ -906,7 +957,7 @@ export default function ScoreScribePage() {
         inning2EventDetails,
         teamNameInputBgColor,
       };
-      saveStateForTeam(currentCanonicalKey, currentState);
+      saveStateForTeam(currentCanonicalKey, currentState); // This will also update highlightedTeamsMap
     }
 
     setTeamName(selectedTeamFullName); 
@@ -921,6 +972,7 @@ export default function ScoreScribePage() {
         setInning2EventDetails(loadedState.inning2EventDetails);
         setTeamNameInputBgColor(loadedState.teamNameInputBgColor);
       } else {
+        // Reset to default state for the newly selected team if no data found
         setInning1Scores(Array(SCORE_BOX_COUNT).fill(""));
         setInning2Scores(Array(SCORE_BOX_COUNT).fill(""));
         setInning1EventDetails(Array(SCORE_BOX_COUNT).fill(""));
@@ -951,7 +1003,7 @@ export default function ScoreScribePage() {
     router.push(`/filtered-scorecard?${queryParams.toString()}`);
   };
   
-  const handleManageTeamData = () => { // Renamed from handleGenerateSummary
+  const handleManageTeamData = () => { 
     const canonicalTeam = getCanonicalTeamName(teamName);
     const teamDisplayName = teamName.trim() || "Overall";
 
@@ -968,7 +1020,7 @@ export default function ScoreScribePage() {
     summary += formatInningSummary(2, inning2Stats);
 
     toast({
-      title: "Game Summary", // Toast title remains the same, as the action is still a summary
+      title: "Game Summary",
       description: (
         <pre className="mt-2 w-[340px] rounded-md bg-slate-950 p-4 overflow-x-auto">
           <code className="text-white">{summary}</code>
@@ -1006,11 +1058,20 @@ export default function ScoreScribePage() {
                 <DropdownMenuPortal>
                     <DropdownMenuSubContent>
                         <ScrollArea className="h-[200px] w-[250px] p-1">
-                            {predefinedTeamNames.map((name) => (
-                            <DropdownMenuItem key={name} onClick={() => handleSelectTeam(name)} className="cursor-pointer">
-                                {name}
-                            </DropdownMenuItem>
-                            ))}
+                            {predefinedTeamNames.map((name) => {
+                              const canonicalName = getCanonicalTeamName(name);
+                              const style = highlightedTeamsMap[canonicalName] ? { color: '#FF00FF' } : {};
+                              return (
+                                <DropdownMenuItem 
+                                  key={name} 
+                                  onClick={() => handleSelectTeam(name)} 
+                                  className="cursor-pointer"
+                                  style={style}
+                                >
+                                  {name}
+                                </DropdownMenuItem>
+                              );
+                            })}
                         </ScrollArea>
                     </DropdownMenuSubContent>
                 </DropdownMenuPortal>
@@ -1028,12 +1089,15 @@ export default function ScoreScribePage() {
               value={teamName}
               onChange={(e) => setTeamName(e.target.value)}
               className={cn(
-                "text-center text-3xl font-semibold text-foreground placeholder:text-muted-foreground/70",
+                "text-center text-3xl font-semibold placeholder:text-muted-foreground/70",
                 "flex-grow py-2",
                 !teamNameInputBgColor && "bg-accent/10 dark:bg-accent/20",
                 "border-primary focus:ring-primary rounded-md"
               )}
-              style={{ backgroundColor: teamNameInputBgColor || undefined }}
+              style={{ 
+                backgroundColor: teamNameInputBgColor || undefined,
+                color: isDataEntered ? '#FF00FF' : undefined 
+              }}
               aria-label="Team Name"
             />
             <DropdownMenu>
@@ -1094,7 +1158,3 @@ export default function ScoreScribePage() {
     </div>
   );
 }
-
-    
-
-    
