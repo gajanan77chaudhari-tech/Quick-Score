@@ -2,6 +2,7 @@
 "use client";
 
 import React, { useState, useMemo, useEffect } from "react";
+import { useRouter } from "next/navigation"; // Added for navigation
 import { InningColumn } from "@/components/inning-column";
 import { Input } from "@/components/ui/input";
 import { cn } from "@/lib/utils";
@@ -14,12 +15,12 @@ import {
   DropdownMenuSeparator,
   DropdownMenuLabel
 } from "@/components/ui/dropdown-menu";
-import { Settings, RotateCcw, Palette, FileText } from "lucide-react";
+import { Settings, RotateCcw, Palette, FileText, NotebookPen } from "lucide-react"; // Added NotebookPen
 import { ScrollArea } from "@/components/ui/scroll-area";
 import { calculateTotalStats } from "@/lib/score-parser";
 import { useToast } from "@/hooks/use-toast";
 
-const SCORE_BOX_COUNT = 17; // Represents events/balls per inning
+const SCORE_BOX_COUNT = 17; 
 
 const userColorList = `
 #000000	Black (W3C)
@@ -770,6 +771,7 @@ const parseColorList = (list: string): { name: string; hex: string }[] => {
 const extensiveColorOptions = parseColorList(userColorList);
 
 export default function ScoreScribePage() {
+  const router = useRouter();
   const [inning1Scores, setInning1Scores] = useState<string[]>(Array(SCORE_BOX_COUNT).fill(""));
   const [inning2Scores, setInning2Scores] = useState<string[]>(Array(SCORE_BOX_COUNT).fill(""));
   
@@ -780,7 +782,6 @@ export default function ScoreScribePage() {
   const [teamNameInputBgColor, setTeamNameInputBgColor] = useState<string>("");
 
   const { toast } = useToast();
-
 
   const inning1Stats = useMemo(() => calculateTotalStats(inning1Scores, inning1EventDetails, teamName), [inning1Scores, inning1EventDetails, teamName]);
   const inning2Stats = useMemo(() => calculateTotalStats(inning2Scores, inning2EventDetails, teamName), [inning2Scores, inning2EventDetails, teamName]);
@@ -799,14 +800,14 @@ export default function ScoreScribePage() {
     
     let inning1Text;
     if (inning1Stats.runs > 0 || inning1Stats.wickets > 0 || inning1Stats.balls > 0) {
-      inning1Text = `1st Inning: ${inning1Stats.runs}/${inning1Stats.wickets}`;
+      inning1Text = `1st Inning: ${inning1Stats.runs}/${inning1Stats.wickets}${teamName.trim() ? ' ' + teamName.trim() : ''}`;
     } else {
       inning1Text = `1st Inning: No scores recorded${teamName.trim() ? ' for ' + teamName.trim() : ''}`;
     }
 
     let inning2Text;
     if (inning2Stats.runs > 0 || inning2Stats.wickets > 0 || inning2Stats.balls > 0) {
-      inning2Text = `2nd Inning: ${inning2Stats.runs}/${inning2Stats.wickets}`;
+      inning2Text = `2nd Inning: ${inning2Stats.runs}/${inning2Stats.wickets}${teamName.trim() ? ' ' + teamName.trim() : ''}`;
     } else {
       inning2Text = `2nd Inning: No scores recorded${teamName.trim() ? ' for ' + teamName.trim() : ''}`;
     }
@@ -818,6 +819,25 @@ export default function ScoreScribePage() {
       description: <pre className="text-sm">{summaryDescription.trim()}</pre>,
       duration: 9000,
     });
+  };
+
+  const handleViewFilteredScorecard = () => {
+    if (!teamName.trim()) {
+      toast({
+        title: "Team Name Required",
+        description: "Please enter a team name to view its detailed scorecard.",
+        variant: "destructive",
+      });
+      return;
+    }
+    const queryParams = new URLSearchParams();
+    queryParams.append("teamName", teamName);
+    queryParams.append("inning1Scores", JSON.stringify(inning1Scores));
+    queryParams.append("inning1EventDetails", JSON.stringify(inning1EventDetails));
+    queryParams.append("inning2Scores", JSON.stringify(inning2Scores));
+    queryParams.append("inning2EventDetails", JSON.stringify(inning2EventDetails));
+    
+    router.push(`/filtered-scorecard?${queryParams.toString()}`);
   };
   
 
@@ -885,6 +905,12 @@ export default function ScoreScribePage() {
               </DropdownMenuContent>
             </DropdownMenu>
           </div>
+          {teamName.trim() && (
+            <Button onClick={handleViewFilteredScorecard} variant="outline" className="ml-0 mt-2 sm:mt-0 sm:ml-2">
+              <NotebookPen className="mr-2 h-4 w-4" />
+              View {teamName.trim()}'s Scorecard
+            </Button>
+          )}
         </div>
       </header>
 
@@ -913,3 +939,5 @@ export default function ScoreScribePage() {
     </div>
   );
 }
+
+    
