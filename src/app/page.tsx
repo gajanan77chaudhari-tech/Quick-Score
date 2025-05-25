@@ -813,16 +813,6 @@ const teamHasData = (state: AppState | null): boolean => {
          state.inning2EventDetails.some(s => s.trim() !== "");
 };
 
-const isTeamDataComplete = (state: AppState | null): boolean => {
-  if (!state) return false;
-  const allFieldsFilled = (arr: string[]) => arr.every(s => s.trim() !== "");
-  return allFieldsFilled(state.inning1Scores) &&
-         allFieldsFilled(state.inning1EventDetails) &&
-         allFieldsFilled(state.inning2Scores) &&
-         allFieldsFilled(state.inning2EventDetails);
-};
-
-
 const loadStateForTeam = (teamKey: string): AppState | null => {
   if (typeof window === 'undefined' || !teamKey) {
     return null;
@@ -859,7 +849,6 @@ export default function ScoreScribePage() {
   const [inning1EventDetails, setInning1EventDetails] = useState<string[]>(() => Array(SCORE_BOX_COUNT).fill(""));
   const [inning2EventDetails, setInning2EventDetails] = useState<string[]>(() => Array(SCORE_BOX_COUNT).fill(""));
   const [teamNameInputBgColor, setTeamNameInputBgColor] = useState<string>("");
-  const [isDataEntered, setIsDataEntered] = useState<boolean>(false);
   const [highlightedTeamsMap, setHighlightedTeamsMap] = useState<Record<string, string>>({});
 
 
@@ -872,10 +861,8 @@ export default function ScoreScribePage() {
       localStorage.setItem(LOCAL_STORAGE_KEY_PREFIX + teamKey, serializedState);
 
       let highlightColor = '';
-      if (isTeamDataComplete(stateToSave)) {
-        highlightColor = '#000000'; // Black for complete
-      } else if (teamHasData(stateToSave)) {
-        highlightColor = '#FF00FF'; // Neon Pink for partial
+      if (teamHasData(stateToSave)) {
+        highlightColor = '#000000'; // Black if any data
       }
       setHighlightedTeamsMap(prev => ({ ...prev, [teamKey]: highlightColor }));
 
@@ -890,10 +877,8 @@ export default function ScoreScribePage() {
       const canonicalKey = getCanonicalTeamName(name);
       const storedState = loadStateForTeam(canonicalKey);
       let highlightColor = '';
-      if (isTeamDataComplete(storedState)) {
-        highlightColor = '#000000';
-      } else if (teamHasData(storedState)) {
-        highlightColor = '#FF00FF';
+      if (teamHasData(storedState)) {
+        highlightColor = '#000000'; // Black if any data
       }
       initialHighlights[canonicalKey] = highlightColor;
     });
@@ -919,17 +904,6 @@ export default function ScoreScribePage() {
   }, [teamName, inning1Scores, inning2Scores, inning1EventDetails, inning2EventDetails, teamNameInputBgColor]);
 
 
-  useEffect(() => {
-    const dataExists =
-      teamName.trim() !== "" ||
-      inning1Scores.some(score => score.trim() !== "") ||
-      inning2Scores.some(score => score.trim() !== "") ||
-      inning1EventDetails.some(detail => detail.trim() !== "") ||
-      inning2EventDetails.some(detail => detail.trim() !== "");
-    setIsDataEntered(dataExists);
-  }, [teamName, inning1Scores, inning2Scores, inning1EventDetails, inning2EventDetails]);
-
-
   const inning1Stats = useMemo(() => calculateTotalStats(inning1Scores, inning1EventDetails, teamName), [inning1Scores, inning1EventDetails, teamName]);
   const inning2Stats = useMemo(() => calculateTotalStats(inning2Scores, inning2EventDetails, teamName), [inning2Scores, inning2EventDetails, teamName]);
 
@@ -937,7 +911,7 @@ export default function ScoreScribePage() {
     const canonicalKey = getCanonicalTeamName(teamName);
     if (canonicalKey && typeof window !== 'undefined') {
       localStorage.removeItem(LOCAL_STORAGE_KEY_PREFIX + canonicalKey);
-      setHighlightedTeamsMap(prev => ({ ...prev, [canonicalKey]: '' })); // Reset to no highlight
+      setHighlightedTeamsMap(prev => ({ ...prev, [canonicalKey]: '' })); 
     }
     setTeamName("");
     setInning1Scores(Array(SCORE_BOX_COUNT).fill(""));
@@ -977,6 +951,7 @@ export default function ScoreScribePage() {
         setInning2EventDetails(loadedState.inning2EventDetails);
         setTeamNameInputBgColor(loadedState.teamNameInputBgColor);
       } else {
+        // If no state is loaded for the new team, reset fields for a fresh start
         setInning1Scores(Array(SCORE_BOX_COUNT).fill(""));
         setInning2Scores(Array(SCORE_BOX_COUNT).fill(""));
         setInning1EventDetails(Array(SCORE_BOX_COUNT).fill(""));
@@ -1162,5 +1137,3 @@ export default function ScoreScribePage() {
     </div>
   );
 }
-
-
