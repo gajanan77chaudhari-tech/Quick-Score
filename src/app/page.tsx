@@ -1,8 +1,8 @@
 
 "use client";
 
-import React, { useState, useMemo, useEffect } from "react";
-import { useRouter } from "next/navigation";
+import React, { useState, useMemo, useEffect, Suspense } from "react";
+import { useRouter, useSearchParams } from "next/navigation"; // Added useSearchParams for potential future use, useRouter for navigation
 import { InningColumn } from "@/components/inning-column";
 import { Input } from "@/components/ui/input";
 import { cn } from "@/lib/utils";
@@ -15,13 +15,13 @@ import {
   DropdownMenuSeparator,
   DropdownMenuLabel
 } from "@/components/ui/dropdown-menu";
-import { Settings, RotateCcw, Palette, FileText, NotebookPen } from "lucide-react";
+import { Settings, RotateCcw, Palette, NotebookPen } from "lucide-react";
 import { ScrollArea } from "@/components/ui/scroll-area";
-import { calculateTotalStats, getCanonicalTeamName } from "@/lib/score-parser"; 
+import { calculateTotalStats, getCanonicalTeamName, parseSingleScoreEntry } from "@/lib/score-parser"; 
 import { useToast } from "@/hooks/use-toast";
 
 const SCORE_BOX_COUNT = 17; 
-const LOCAL_STORAGE_KEY = "scoreScribeAppState";
+const LOCAL_STORAGE_KEY_PREFIX = "scoreScribeAppState_";
 
 const userColorList = `
 #000000	Black (W3C)
@@ -784,61 +784,83 @@ const predefinedTeamNames = [
   "Sunrisers Hyderabad"
 ];
 
-const loadStateFromLocalStorage = () => {
-  if (typeof window === 'undefined') {
+interface AppState {
+  teamName: string;
+  inning1Scores: string[];
+  inning2Scores: string[];
+  inning1EventDetails: string[];
+  inning2EventDetails: string[];
+  teamNameInputBgColor: string;
+}
+
+const defaultAppState: Omit<AppState, 'teamName'> = {
+  inning1Scores: Array(SCORE_BOX_COUNT).fill(""),
+  inning2Scores: Array(SCORE_BOX_COUNT).fill(""),
+  inning1EventDetails: Array(SCORE_BOX_COUNT).fill(""),
+  inning2EventDetails: Array(SCORE_BOX_COUNT).fill(""),
+  teamNameInputBgColor: "",
+};
+
+const loadStateForTeam = (teamKey: string): AppState | null => {
+  if (typeof window === 'undefined' || !teamKey) {
     return null;
   }
   try {
-    const serializedState = localStorage.getItem(LOCAL_STORAGE_KEY);
+    const serializedState = localStorage.getItem(LOCAL_STORAGE_KEY_PREFIX + teamKey);
     if (serializedState === null) {
       return null;
     }
     return JSON.parse(serializedState);
   } catch (error) {
-    console.error("Error loading state from localStorage:", error);
+    console.error("Error loading state from localStorage for team:", teamKey, error);
     return null;
   }
 };
+
+const saveStateForTeam = (teamKey: string, state: AppState) => {
+  if (typeof window === 'undefined' || !teamKey) {
+    return;
+  }
+  try {
+    const serializedState = JSON.stringify(state);
+    localStorage.setItem(LOCAL_STORAGE_KEY_PREFIX + teamKey, serializedState);
+  } catch (error) {
+    console.error("Error saving state to localStorage for team:", teamKey, error);
+  }
+};
+
 
 export default function ScoreScribePage() {
   const router = useRouter();
   const { toast } = useToast();
 
+  const [teamName, setTeamName] = useState<string>(""); 
   const [inning1Scores, setInning1Scores] = useState<string[]>(() => Array(SCORE_BOX_COUNT).fill(""));
   const [inning2Scores, setInning2Scores] = useState<string[]>(() => Array(SCORE_BOX_COUNT).fill(""));
   const [inning1EventDetails, setInning1EventDetails] = useState<string[]>(() => Array(SCORE_BOX_COUNT).fill(""));
   const [inning2EventDetails, setInning2EventDetails] = useState<string[]>(() => Array(SCORE_BOX_COUNT).fill(""));
-  const [teamName, setTeamName] = useState<string>(""); 
   const [teamNameInputBgColor, setTeamNameInputBgColor] = useState<string>("");
 
-
+  // Load initial state (e.g., for the first predefined team or last active, simplified for now)
   useEffect(() => {
-    const savedState = loadStateFromLocalStorage();
-    if (savedState) {
-      setTeamName(savedState.teamName || "");
-      setInning1Scores(savedState.inning1Scores || Array(SCORE_BOX_COUNT).fill(""));
-      setInning2Scores(savedState.inning2Scores || Array(SCORE_BOX_COUNT).fill(""));
-      setInning1EventDetails(savedState.inning1EventDetails || Array(SCORE_BOX_COUNT).fill(""));
-      setInning2EventDetails(savedState.inning2EventDetails || Array(SCORE_BOX_COUNT).fill(""));
-      setTeamNameInputBgColor(savedState.teamNameInputBgColor || "");
-    }
-  // eslint-disable-next-line react-hooks/exhaustive-deps
+    // This effect runs once on mount to load some initial state if desired.
+    // For now, it doesn't auto-load a specific team. User selection drives loading.
   }, []);
 
+  // Save state whenever relevant parts change FOR THE CURRENTLY ACTIVE TEAM
   useEffect(() => {
-    if (typeof window !== 'undefined') {
-      const stateToSave = {
-        teamName,
-        inning1Scores,
-        inning2Scores,
-        inning1EventDetails,
-        inning2EventDetails,
-        teamNameInputBgColor,
-      };
-      try {
-        localStorage.setItem(LOCAL_STORAGE_KEY, JSON.stringify(stateToSave));
-      } catch (error) {
-        console.error("Error saving state to localStorage:", error);
+    if (teamName.trim()) { // Only save if there's an active team name
+      const canonicalKey = getCanonicalTeamName(teamName);
+      if (canonicalKey) {
+        const currentState: AppState = {
+          teamName, // Save the raw team name as entered by user for display
+          inning1Scores,
+          inning2Scores,
+          inning1EventDetails,
+          inning2EventDetails,
+          teamNameInputBgColor,
+        };
+        saveStateForTeam(canonicalKey, currentState);
       }
     }
   }, [teamName, inning1Scores, inning2Scores, inning1EventDetails, inning2EventDetails, teamNameInputBgColor]);
@@ -846,47 +868,62 @@ export default function ScoreScribePage() {
   const inning1Stats = useMemo(() => calculateTotalStats(inning1Scores, inning1EventDetails, teamName), [inning1Scores, inning1EventDetails, teamName]);
   const inning2Stats = useMemo(() => calculateTotalStats(inning2Scores, inning2EventDetails, teamName), [inning2Scores, inning2EventDetails, teamName]);
 
-  const handleResetGame = () => {
-    setTeamName("");
-    setTeamNameInputBgColor("");
+  const handleResetGame = () => { // Resets data for the CURRENTLY active team
+    const canonicalKey = getCanonicalTeamName(teamName);
+    if (canonicalKey && typeof window !== 'undefined') {
+      localStorage.removeItem(LOCAL_STORAGE_KEY_PREFIX + canonicalKey);
+    }
+    // Reset view to blank state
+    setTeamName(""); // Or set to a default if you prefer
     setInning1Scores(Array(SCORE_BOX_COUNT).fill(""));
     setInning2Scores(Array(SCORE_BOX_COUNT).fill(""));
     setInning1EventDetails(Array(SCORE_BOX_COUNT).fill(""));
     setInning2EventDetails(Array(SCORE_BOX_COUNT).fill(""));
-    if (typeof window !== 'undefined') {
-      try {
-        localStorage.removeItem(LOCAL_STORAGE_KEY);
-      } catch (error) {
-        console.error("Error removing state from localStorage:", error);
-      }
-    }
+    setTeamNameInputBgColor("");
+     toast({
+      title: "Scores Reset",
+      description: `Data for ${teamName || 'the current session'} has been cleared.`,
+    });
   };
   
-  const handleGenerateSummary = () => {
-    const summaryTitle = teamName.trim() ? `${getCanonicalTeamName(teamName).toUpperCase()}'s Game Summary` : "Game Summary";
-    const canonicalTeamNameForSummary = getCanonicalTeamName(teamName); 
-    
-    let inning1Text;
-    if (inning1Stats.runs > 0 || inning1Stats.wickets > 0 || inning1Stats.balls > 0) {
-      inning1Text = `1st Inning: ${inning1Stats.runs}/${inning1Stats.wickets}${canonicalTeamNameForSummary.trim() ? ' ' + canonicalTeamNameForSummary.trim().toUpperCase() : ''}`;
-    } else {
-      inning1Text = `1st Inning: No scores recorded${canonicalTeamNameForSummary.trim() ? ' for ' + canonicalTeamNameForSummary.trim().toUpperCase() : ''}`;
+  const handleSelectTeam = (selectedTeamFullName: string) => {
+    const currentCanonicalKey = getCanonicalTeamName(teamName);
+    // Save current team's data before switching, if a team was active
+    if (currentCanonicalKey) {
+      const currentState: AppState = {
+        teamName,
+        inning1Scores,
+        inning2Scores,
+        inning1EventDetails,
+        inning2EventDetails,
+        teamNameInputBgColor,
+      };
+      saveStateForTeam(currentCanonicalKey, currentState);
     }
 
-    let inning2Text;
-    if (inning2Stats.runs > 0 || inning2Stats.wickets > 0 || inning2Stats.balls > 0) {
-      inning2Text = `2nd Inning: ${inning2Stats.runs}/${inning2Stats.wickets}${canonicalTeamNameForSummary.trim() ? ' ' + canonicalTeamNameForSummary.trim().toUpperCase() : ''}`;
-    } else {
-      inning2Text = `2nd Inning: No scores recorded${canonicalTeamNameForSummary.trim() ? ' for ' + canonicalTeamNameForSummary.trim().toUpperCase() : ''}`;
-    }
+    // Set new team name
+    setTeamName(selectedTeamFullName);
+    const newCanonicalKey = getCanonicalTeamName(selectedTeamFullName);
 
-    const summaryDescription = `${inning1Text}\n${inning2Text}`;
-    
-    toast({
-      title: summaryTitle,
-      description: <pre className="text-sm">{summaryDescription.trim()}</pre>,
-      duration: 9000,
-    });
+    // Load new team's data
+    if (newCanonicalKey) {
+      const loadedState = loadStateForTeam(newCanonicalKey);
+      if (loadedState) {
+        setInning1Scores(loadedState.inning1Scores);
+        setInning2Scores(loadedState.inning2Scores);
+        setInning1EventDetails(loadedState.inning1EventDetails);
+        setInning2EventDetails(loadedState.inning2EventDetails);
+        setTeamNameInputBgColor(loadedState.teamNameInputBgColor);
+        // teamName is already set by setTeamName(selectedTeamFullName)
+      } else {
+        // No saved data, reset to defaults for the new team
+        setInning1Scores(Array(SCORE_BOX_COUNT).fill(""));
+        setInning2Scores(Array(SCORE_BOX_COUNT).fill(""));
+        setInning1EventDetails(Array(SCORE_BOX_COUNT).fill(""));
+        setInning2EventDetails(Array(SCORE_BOX_COUNT).fill(""));
+        setTeamNameInputBgColor("");
+      }
+    }
   };
 
   const handleViewFilteredScorecard = () => {
@@ -894,7 +931,7 @@ export default function ScoreScribePage() {
     if (!canonicalFilterTeamName.trim()) {
       toast({
         title: "Team Name Required",
-        description: "Please enter a team name to view its detailed scorecard.",
+        description: "Please enter or select a team name to view its detailed scorecard.",
         variant: "destructive",
       });
       return;
@@ -909,10 +946,6 @@ export default function ScoreScribePage() {
     router.push(`/filtered-scorecard?${queryParams.toString()}`);
   };
 
-  const handleSelectTeam = (selectedTeam: string) => {
-    setTeamName(selectedTeam);
-  };
-
   return (
     <div className="p-4 sm:p-6 md:p-8 flex flex-col items-center gap-8 min-h-screen relative w-full">
       <div className="absolute top-4 left-4 sm:top-6 sm:left-6 md:top-8 md:left-8 z-10">
@@ -925,15 +958,10 @@ export default function ScoreScribePage() {
           <DropdownMenuContent align="start">
             <DropdownMenuItem onClick={handleResetGame} className="cursor-pointer">
               <RotateCcw className="mr-2 h-4 w-4" />
-              <span>Reset Scores</span>
+              <span>Reset Current Team Scores</span>
             </DropdownMenuItem>
             <DropdownMenuSeparator />
-            <DropdownMenuItem onClick={handleGenerateSummary} className="cursor-pointer">
-              <FileText className="mr-2 h-4 w-4" />
-              <span>Team Settings</span>
-            </DropdownMenuItem>
-            <DropdownMenuSeparator />
-            <DropdownMenuLabel>Select a Team</DropdownMenuLabel>
+            <DropdownMenuLabel>Manage Team Data</DropdownMenuLabel>
             {predefinedTeamNames.map((name) => (
               <DropdownMenuItem key={name} onClick={() => handleSelectTeam(name)} className="cursor-pointer">
                 {name}
@@ -945,7 +973,7 @@ export default function ScoreScribePage() {
 
       <header className="text-center w-full mt-12 sm:mt-10 md:mt-8">
         <div className="flex flex-col sm:flex-row justify-center items-center gap-2 mb-6 mx-auto w-full px-4">
-          <div className="relative flex items-center group w-full sm:w-auto sm:max-w-xs md:max-w-sm lg:max-w-md">
+          <div className="relative flex items-center group w-full sm:w-auto sm:max-w-xs md:max-w-sm lg:max-w-lg">
             <Input
               type="text"
               placeholder="Team Name"
@@ -1019,3 +1047,4 @@ export default function ScoreScribePage() {
   );
 }
 
+    
