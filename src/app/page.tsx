@@ -17,7 +17,7 @@ import {
 } from "@/components/ui/dropdown-menu";
 import { Settings, RotateCcw, Palette, FileText, NotebookPen } from "lucide-react";
 import { ScrollArea } from "@/components/ui/scroll-area";
-import { calculateTotalStats } from "@/lib/score-parser";
+import { calculateTotalStats, getCanonicalTeamName } from "@/lib/score-parser"; // Import getCanonicalTeamName
 import { useToast } from "@/hooks/use-toast";
 
 const SCORE_BOX_COUNT = 17; 
@@ -771,7 +771,6 @@ const parseColorList = (list: string): { name: string; hex: string }[] => {
 
 const extensiveColorOptions = parseColorList(userColorList);
 
-// Helper to load state from localStorage
 const loadStateFromLocalStorage = () => {
   if (typeof window === 'undefined') {
     return null;
@@ -796,10 +795,10 @@ export default function ScoreScribePage() {
   const [inning2Scores, setInning2Scores] = useState<string[]>(() => Array(SCORE_BOX_COUNT).fill(""));
   const [inning1EventDetails, setInning1EventDetails] = useState<string[]>(() => Array(SCORE_BOX_COUNT).fill(""));
   const [inning2EventDetails, setInning2EventDetails] = useState<string[]>(() => Array(SCORE_BOX_COUNT).fill(""));
-  const [teamName, setTeamName] = useState<string>("");
+  const [teamName, setTeamName] = useState<string>(""); // Raw team name input by user
   const [teamNameInputBgColor, setTeamNameInputBgColor] = useState<string>("");
 
-  // Load state from localStorage on initial mount
+
   useEffect(() => {
     const savedState = loadStateFromLocalStorage();
     if (savedState) {
@@ -811,9 +810,8 @@ export default function ScoreScribePage() {
       setTeamNameInputBgColor(savedState.teamNameInputBgColor || "");
     }
   // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, []); // Empty dependency array ensures this runs only once on mount
+  }, []);
 
-  // Save state to localStorage whenever relevant state changes
   useEffect(() => {
     if (typeof window !== 'undefined') {
       const stateToSave = {
@@ -852,20 +850,21 @@ export default function ScoreScribePage() {
   };
   
   const handleGenerateSummary = () => {
-    const summaryTitle = teamName.trim() ? `Game Summary for ${teamName.trim()}` : "Game Summary";
+    const summaryTitle = teamName.trim() ? `${teamName.trim()}'s Game Summary` : "Game Summary";
+    const canonicalTeamNameForSummary = getCanonicalTeamName(teamName); // Use canonical for display in toast if preferred
     
     let inning1Text;
     if (inning1Stats.runs > 0 || inning1Stats.wickets > 0 || inning1Stats.balls > 0) {
-      inning1Text = `1st Inning: ${inning1Stats.runs}/${inning1Stats.wickets}${teamName.trim() ? ' ' + teamName.trim() : ''}`;
+      inning1Text = `1st Inning: ${inning1Stats.runs}/${inning1Stats.wickets}${canonicalTeamNameForSummary.trim() ? ' ' + canonicalTeamNameForSummary.trim().toUpperCase() : ''}`;
     } else {
-      inning1Text = `1st Inning: No scores recorded${teamName.trim() ? ' for ' + teamName.trim() : ''}`;
+      inning1Text = `1st Inning: No scores recorded${canonicalTeamNameForSummary.trim() ? ' for ' + canonicalTeamNameForSummary.trim().toUpperCase() : ''}`;
     }
 
     let inning2Text;
     if (inning2Stats.runs > 0 || inning2Stats.wickets > 0 || inning2Stats.balls > 0) {
-      inning2Text = `2nd Inning: ${inning2Stats.runs}/${inning2Stats.wickets}${teamName.trim() ? ' ' + teamName.trim() : ''}`;
+      inning2Text = `2nd Inning: ${inning2Stats.runs}/${inning2Stats.wickets}${canonicalTeamNameForSummary.trim() ? ' ' + canonicalTeamNameForSummary.trim().toUpperCase() : ''}`;
     } else {
-      inning2Text = `2nd Inning: No scores recorded${teamName.trim() ? ' for ' + teamName.trim() : ''}`;
+      inning2Text = `2nd Inning: No scores recorded${canonicalTeamNameForSummary.trim() ? ' for ' + canonicalTeamNameForSummary.trim().toUpperCase() : ''}`;
     }
 
     const summaryDescription = `${inning1Text}\n${inning2Text}`;
@@ -878,7 +877,8 @@ export default function ScoreScribePage() {
   };
 
   const handleViewFilteredScorecard = () => {
-    if (!teamName.trim()) {
+    const canonicalFilterTeamName = getCanonicalTeamName(teamName);
+    if (!canonicalFilterTeamName.trim()) {
       toast({
         title: "Team Name Required",
         description: "Please enter a team name to view its detailed scorecard.",
@@ -887,7 +887,7 @@ export default function ScoreScribePage() {
       return;
     }
     const queryParams = new URLSearchParams();
-    queryParams.append("teamName", teamName);
+    queryParams.append("teamName", canonicalFilterTeamName); // Pass canonical name
     queryParams.append("inning1Scores", JSON.stringify(inning1Scores));
     queryParams.append("inning1EventDetails", JSON.stringify(inning1EventDetails));
     queryParams.append("inning2Scores", JSON.stringify(inning2Scores));
@@ -925,7 +925,7 @@ export default function ScoreScribePage() {
             <Input
               type="text"
               placeholder="Team Name"
-              value={teamName}
+              value={teamName} // Displays raw user input
               onChange={(e) => setTeamName(e.target.value)}
               className={cn(
                 "text-center text-3xl font-semibold text-foreground placeholder:text-muted-foreground/70",
@@ -960,10 +960,10 @@ export default function ScoreScribePage() {
               </DropdownMenuContent>
             </DropdownMenu>
           </div>
-          {teamName.trim() && (
+          {getCanonicalTeamName(teamName).trim() && (
             <Button onClick={handleViewFilteredScorecard} variant="outline" className="ml-0 mt-2 sm:mt-0 sm:ml-2">
               <NotebookPen className="mr-2 h-4 w-4" />
-              View {teamName.trim()}'s Detailed Scorecard
+              View {getCanonicalTeamName(teamName).trim().toUpperCase()}'s Detailed Scorecard
             </Button>
           )}
         </div>
@@ -994,5 +994,3 @@ export default function ScoreScribePage() {
     </div>
   );
 }
-
-      
