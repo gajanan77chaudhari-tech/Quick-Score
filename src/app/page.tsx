@@ -930,7 +930,7 @@ export default function ScoreScribePage() {
             <DropdownMenuSeparator />
             <DropdownMenuItem onClick={handleGenerateSummary} className="cursor-pointer">
               <FileText className="mr-2 h-4 w-4" />
-              <span>Generate Game Summary</span>
+              <span>Team Settings</span>
             </DropdownMenuItem>
             <DropdownMenuSeparator />
             <DropdownMenuLabel>Select a Team</DropdownMenuLabel>
@@ -1018,3 +1018,4 @@ export default function ScoreScribePage() {
     </div>
   );
 }
+
