@@ -2,7 +2,7 @@
 "use client";
 
 import React, { useState, useMemo, useEffect } from "react";
-import { useRouter } from "next/navigation"; // Added for navigation
+import { useRouter } from "next/navigation";
 import { InningColumn } from "@/components/inning-column";
 import { Input } from "@/components/ui/input";
 import { cn } from "@/lib/utils";
@@ -15,12 +15,13 @@ import {
   DropdownMenuSeparator,
   DropdownMenuLabel
 } from "@/components/ui/dropdown-menu";
-import { Settings, RotateCcw, Palette, FileText, NotebookPen } from "lucide-react"; // Added NotebookPen
+import { Settings, RotateCcw, Palette, FileText, NotebookPen } from "lucide-react";
 import { ScrollArea } from "@/components/ui/scroll-area";
 import { calculateTotalStats } from "@/lib/score-parser";
 import { useToast } from "@/hooks/use-toast";
 
 const SCORE_BOX_COUNT = 17; 
+const LOCAL_STORAGE_KEY = "scoreScribeAppState";
 
 const userColorList = `
 #000000	Black (W3C)
@@ -770,18 +771,66 @@ const parseColorList = (list: string): { name: string; hex: string }[] => {
 
 const extensiveColorOptions = parseColorList(userColorList);
 
+// Helper to load state from localStorage
+const loadStateFromLocalStorage = () => {
+  if (typeof window === 'undefined') {
+    return null;
+  }
+  try {
+    const serializedState = localStorage.getItem(LOCAL_STORAGE_KEY);
+    if (serializedState === null) {
+      return null;
+    }
+    return JSON.parse(serializedState);
+  } catch (error) {
+    console.error("Error loading state from localStorage:", error);
+    return null;
+  }
+};
+
 export default function ScoreScribePage() {
   const router = useRouter();
-  const [inning1Scores, setInning1Scores] = useState<string[]>(Array(SCORE_BOX_COUNT).fill(""));
-  const [inning2Scores, setInning2Scores] = useState<string[]>(Array(SCORE_BOX_COUNT).fill(""));
-  
-  const [inning1EventDetails, setInning1EventDetails] = useState<string[]>(Array(SCORE_BOX_COUNT).fill(""));
-  const [inning2EventDetails, setInning2EventDetails] = useState<string[]>(Array(SCORE_BOX_COUNT).fill(""));
+  const { toast } = useToast();
 
-  const [teamName, setTeamName] = useState<string>(""); 
+  const [inning1Scores, setInning1Scores] = useState<string[]>(() => Array(SCORE_BOX_COUNT).fill(""));
+  const [inning2Scores, setInning2Scores] = useState<string[]>(() => Array(SCORE_BOX_COUNT).fill(""));
+  const [inning1EventDetails, setInning1EventDetails] = useState<string[]>(() => Array(SCORE_BOX_COUNT).fill(""));
+  const [inning2EventDetails, setInning2EventDetails] = useState<string[]>(() => Array(SCORE_BOX_COUNT).fill(""));
+  const [teamName, setTeamName] = useState<string>("");
   const [teamNameInputBgColor, setTeamNameInputBgColor] = useState<string>("");
 
-  const { toast } = useToast();
+  // Load state from localStorage on initial mount
+  useEffect(() => {
+    const savedState = loadStateFromLocalStorage();
+    if (savedState) {
+      setTeamName(savedState.teamName || "");
+      setInning1Scores(savedState.inning1Scores || Array(SCORE_BOX_COUNT).fill(""));
+      setInning2Scores(savedState.inning2Scores || Array(SCORE_BOX_COUNT).fill(""));
+      setInning1EventDetails(savedState.inning1EventDetails || Array(SCORE_BOX_COUNT).fill(""));
+      setInning2EventDetails(savedState.inning2EventDetails || Array(SCORE_BOX_COUNT).fill(""));
+      setTeamNameInputBgColor(savedState.teamNameInputBgColor || "");
+    }
+  // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, []); // Empty dependency array ensures this runs only once on mount
+
+  // Save state to localStorage whenever relevant state changes
+  useEffect(() => {
+    if (typeof window !== 'undefined') {
+      const stateToSave = {
+        teamName,
+        inning1Scores,
+        inning2Scores,
+        inning1EventDetails,
+        inning2EventDetails,
+        teamNameInputBgColor,
+      };
+      try {
+        localStorage.setItem(LOCAL_STORAGE_KEY, JSON.stringify(stateToSave));
+      } catch (error) {
+        console.error("Error saving state to localStorage:", error);
+      }
+    }
+  }, [teamName, inning1Scores, inning2Scores, inning1EventDetails, inning2EventDetails, teamNameInputBgColor]);
 
   const inning1Stats = useMemo(() => calculateTotalStats(inning1Scores, inning1EventDetails, teamName), [inning1Scores, inning1EventDetails, teamName]);
   const inning2Stats = useMemo(() => calculateTotalStats(inning2Scores, inning2EventDetails, teamName), [inning2Scores, inning2EventDetails, teamName]);
@@ -793,8 +842,15 @@ export default function ScoreScribePage() {
     setInning2Scores(Array(SCORE_BOX_COUNT).fill(""));
     setInning1EventDetails(Array(SCORE_BOX_COUNT).fill(""));
     setInning2EventDetails(Array(SCORE_BOX_COUNT).fill(""));
+    if (typeof window !== 'undefined') {
+      try {
+        localStorage.removeItem(LOCAL_STORAGE_KEY);
+      } catch (error) {
+        console.error("Error removing state from localStorage:", error);
+      }
+    }
   };
-
+  
   const handleGenerateSummary = () => {
     const summaryTitle = teamName.trim() ? `Game Summary for ${teamName.trim()}` : "Game Summary";
     
@@ -839,7 +895,6 @@ export default function ScoreScribePage() {
     
     router.push(`/filtered-scorecard?${queryParams.toString()}`);
   };
-  
 
   return (
     <div className="p-4 sm:p-6 md:p-8 flex flex-col items-center gap-8 min-h-screen relative w-full">
@@ -908,7 +963,7 @@ export default function ScoreScribePage() {
           {teamName.trim() && (
             <Button onClick={handleViewFilteredScorecard} variant="outline" className="ml-0 mt-2 sm:mt-0 sm:ml-2">
               <NotebookPen className="mr-2 h-4 w-4" />
-              View {teamName.trim()}'s Scorecard
+              View {teamName.trim()}'s Detailed Scorecard
             </Button>
           )}
         </div>
@@ -940,4 +995,4 @@ export default function ScoreScribePage() {
   );
 }
 
-    
+      
