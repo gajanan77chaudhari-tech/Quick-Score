@@ -7,32 +7,13 @@ import Link from 'next/link';
 import { Button } from '@/components/ui/button';
 import { Card, CardContent, CardHeader, CardTitle, CardFooter } from '@/components/ui/card';
 import { ScrollArea } from "@/components/ui/scroll-area";
-import { ArrowLeft, ListChecks, NotebookPen } from 'lucide-react';
-import { getCanonicalTeamName, parseSingleScoreEntry, calculateTotalStats } from '@/lib/score-parser';
+import { ArrowLeft, NotebookPen } from 'lucide-react'; // Removed ListChecks
+import { getCanonicalTeamName, parseSingleScoreEntry } from '@/lib/score-parser';
 
 // Define constants used in this file
-const LOCAL_STORAGE_KEY_PREFIX = "scoreScribeAppState_";
+// const LOCAL_STORAGE_KEY_PREFIX = "scoreScribeAppState_"; // No longer needed here
 
-interface AppState {
-  teamName: string; // This is the raw display name user typed for this saved entry
-  inning1Scores: string[];
-  inning2Scores: string[];
-  inning1EventDetails: string[];
-  inning2EventDetails: string[];
-  teamNameInputBgColor: string;
-}
-
-interface SavedMatchSummary {
-  id: string; // Usually canonical team name part of the key
-  displayName: string;
-  inning1Summary: string;
-  inning2Summary: string;
-  // Add these to be able to reconstruct the query for viewing this specific match
-  rawInning1Scores: string;
-  rawInning1EventDetails: string;
-  rawInning2Scores: string;
-  rawInning2EventDetails: string;
-}
+// Removed AppState and SavedMatchSummary interfaces as they are not used for this simplified page
 
 // Local component to display one inning's filtered details for the *current* team from URL
 function CurrentTeamInningDetailsCard({
@@ -135,57 +116,13 @@ function FilteredScorecardContent() {
   }
 
   const canonicalFilterNameForCurrentTeam = getCanonicalTeamName(rawFilterTeamNameFromURL);
-  const pageTitle = rawFilterTeamNameFromURL.trim() ? `${rawFilterTeamNameFromURL.trim()}'s Detailed Scorecard` : "Detailed Scorecard";
+  // Use the raw name for display in the title for user consistency
+  const displayTeamNameForTitle = searchParams.get("teamName") || ""; 
+  const pageTitle = displayTeamNameForTitle.trim() ? `${displayTeamNameForTitle.trim()}'s Detailed Scorecard` : "Detailed Scorecard";
 
-  const [allSavedMatchSummaries, setAllSavedMatchSummaries] = useState<SavedMatchSummary[]>([]);
+  // Removed state and useEffect for allSavedMatchSummaries
 
-  useEffect(() => {
-    if (typeof window !== 'undefined') {
-      const summaries: SavedMatchSummary[] = [];
-      for (let i = 0; i < localStorage.length; i++) {
-        const key = localStorage.key(i);
-        if (key && key.startsWith(LOCAL_STORAGE_KEY_PREFIX)) {
-          try {
-            const storedStateString = localStorage.getItem(key);
-            if (storedStateString) {
-              const storedState: AppState = JSON.parse(storedStateString);
-              
-              // Calculate stats for this saved team, filtered by its OWN saved team name
-              const stats1 = calculateTotalStats(storedState.inning1Scores, storedState.inning1EventDetails, storedState.teamName);
-              const stats2 = calculateTotalStats(storedState.inning2Scores, storedState.inning2EventDetails, storedState.teamName);
-              
-              summaries.push({
-                id: key.replace(LOCAL_STORAGE_KEY_PREFIX, ""),
-                displayName: storedState.teamName || "Unnamed Team",
-                inning1Summary: `${stats1.runs}/${stats1.wickets}`,
-                inning2Summary: `${stats2.runs}/${stats2.wickets}`,
-                rawInning1Scores: JSON.stringify(storedState.inning1Scores),
-                rawInning1EventDetails: JSON.stringify(storedState.inning1EventDetails),
-                rawInning2Scores: JSON.stringify(storedState.inning2Scores),
-                rawInning2EventDetails: JSON.stringify(storedState.inning2EventDetails),
-              });
-            }
-          } catch (e) {
-            console.error("Error processing saved state for key", key, e);
-          }
-        }
-      }
-      // Sort summaries alphabetically by displayName for consistent ordering
-      summaries.sort((a, b) => a.displayName.localeCompare(b.displayName));
-      setAllSavedMatchSummaries(summaries);
-    }
-  }, []);
-
-  const handleViewSavedMatch = (summary: SavedMatchSummary) => {
-    const queryParams = new URLSearchParams();
-    queryParams.append("teamName", summary.displayName); // Use the display name for the next view
-    queryParams.append("inning1Scores", summary.rawInning1Scores);
-    queryParams.append("inning1EventDetails", summary.rawInning1EventDetails);
-    queryParams.append("inning2Scores", summary.rawInning2Scores);
-    queryParams.append("inning2EventDetails", summary.rawInning2EventDetails);
-    router.push(`/filtered-scorecard?${queryParams.toString()}`);
-  };
-
+  // Removed handleViewSavedMatch function
 
   return (
     <div className="p-4 sm:p-6 md:p-8 flex flex-col items-center gap-8 min-h-screen w-full bg-background">
@@ -211,52 +148,19 @@ function FilteredScorecardContent() {
           inningNumber={1}
           allScores={currentInning1Scores}
           allEventDetails={currentInning1EventDetails}
-          displayTeamName={rawFilterTeamNameFromURL} 
+          displayTeamName={displayTeamNameForTitle} 
           filterTeamName={canonicalFilterNameForCurrentTeam}
         />
         <CurrentTeamInningDetailsCard
           inningNumber={2}
           allScores={currentInning2Scores}
           allEventDetails={currentInning2EventDetails}
-          displayTeamName={rawFilterTeamNameFromURL}
+          displayTeamName={displayTeamNameForTitle}
           filterTeamName={canonicalFilterNameForCurrentTeam} 
         />
       </main>
 
-      {/* List of All Other Saved Matches */}
-      {allSavedMatchSummaries.length > 0 && (
-        <section className="w-full max-w-4xl mx-auto mt-10 mb-8">
-          <Card>
-            <CardHeader>
-              <CardTitle className="flex items-center gap-2 text-xl sm:text-2xl text-primary">
-                <ListChecks className="h-6 w-6" />
-                All Saved Match Summaries
-              </CardTitle>
-            </CardHeader>
-            <CardContent className="space-y-4">
-              <ScrollArea className="h-[400px] p-1">
-                {allSavedMatchSummaries.map(summary => (
-                  <Card key={summary.id} className="mb-4 p-4 hover:shadow-md transition-shadow">
-                    <div className="flex justify-between items-center">
-                        <div>
-                            <h3 className="font-semibold text-lg text-foreground">{summary.displayName}</h3>
-                            <p className="text-sm text-muted-foreground">
-                                1st Inning: <span className="font-medium text-foreground">{summary.inning1Summary}</span>
-                                <span className="mx-2 text-muted-foreground">|</span>
-                                2nd Inning: <span className="font-medium text-foreground">{summary.inning2Summary}</span>
-                            </p>
-                        </div>
-                        <Button variant="outline" size="sm" onClick={() => handleViewSavedMatch(summary)}>
-                            View Details
-                        </Button>
-                    </div>
-                  </Card>
-                ))}
-              </ScrollArea>
-            </CardContent>
-          </Card>
-        </section>
-      )}
+      {/* Removed "List of All Other Saved Matches" section */}
       
       <footer className="mt-auto py-4 text-center text-muted-foreground text-sm">
         <p>&copy; {new Date().getFullYear()} ScoreScribe. All rights reserved.</p>
@@ -278,4 +182,3 @@ export default function FilteredScorecardPage() {
     </Suspense>
   );
 }
-
