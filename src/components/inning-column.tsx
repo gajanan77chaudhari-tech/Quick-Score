@@ -50,19 +50,19 @@ export function InningColumn({
         "bg-card" 
       )}>
       <CardHeader>
-        <CardTitle className="text-white">{cardTitle}</CardTitle>
+        <CardTitle className="text-black">{cardTitle}</CardTitle>
       </CardHeader>
       <CardContent className="space-y-2">
         <div className="grid grid-cols-2 gap-2 mb-1">
           <Label 
             htmlFor={`inning-${inningNumber}-score-header`} 
-            className="text-sm font-medium text-white text-center"
+            className="text-sm font-medium text-black text-center"
           >
             Score
           </Label>
           <Label 
             htmlFor={`inning-${inningNumber}-detail-header`} 
-            className="text-sm font-medium text-white text-center"
+            className="text-sm font-medium text-black text-center"
           >
             Team
           </Label>
