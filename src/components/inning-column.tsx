@@ -1,7 +1,7 @@
 
 "use client";
 
-import React, { useState, useEffect } from "react";
+import React from "react";
 import { Input } from "@/components/ui/input";
 import { Card, CardContent, CardFooter, CardHeader, CardTitle } from "@/components/ui/card";
 import { Label } from "@/components/ui/label";
@@ -21,46 +21,23 @@ const MAX_INPUT_LENGTH = 10;
 
 export function InningColumn({ 
   inningNumber, 
-  scores: initialScores, 
+  scores, 
   onScoresUpdate, 
-  eventDetails: initialEventDetails,
+  eventDetails,
   onEventDetailsUpdate,
   inningStats 
 }: InningColumnProps) {
-  const [scoreInputValues, setScoreInputValues] = useState<string[]>(() => 
-    initialScores.length === SCORE_BOX_COUNT ? initialScores : Array(SCORE_BOX_COUNT).fill("")
-  );
-  const [detailInputValues, setDetailInputValues] = useState<string[]>(() =>
-    initialEventDetails.length === SCORE_BOX_COUNT ? initialEventDetails : Array(SCORE_BOX_COUNT).fill("")
-  );
-
-  useEffect(() => {
-    if (JSON.stringify(initialScores) !== JSON.stringify(scoreInputValues)) {
-       setScoreInputValues(initialScores.length === SCORE_BOX_COUNT ? initialScores : Array(SCORE_BOX_COUNT).fill(""));
-    }
-  // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [initialScores]);
-
-  useEffect(() => {
-    if (JSON.stringify(initialEventDetails) !== JSON.stringify(detailInputValues)) {
-      setDetailInputValues(initialEventDetails.length === SCORE_BOX_COUNT ? initialEventDetails : Array(SCORE_BOX_COUNT).fill(""));
-    }
-  // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [initialEventDetails]);
-
 
   const handleScoreInputChange = (index: number, value: string) => {
-    const newValues = [...scoreInputValues];
+    const newValues = [...scores];
     const processedValue = value.slice(0, MAX_INPUT_LENGTH);
     newValues[index] = processedValue;
-    setScoreInputValues(newValues);
     onScoresUpdate(newValues);
   };
 
   const handleDetailInputChange = (index: number, value: string) => {
-    const newValues = [...detailInputValues];
+    const newValues = [...eventDetails];
     newValues[index] = value.slice(0, MAX_INPUT_LENGTH); 
-    setDetailInputValues(newValues);
     onEventDetailsUpdate(newValues);
   };
 
@@ -69,24 +46,23 @@ export function InningColumn({
 
   return (
     <Card className={cn(
-        "w-full md:w-auto md:min-w-[180px] shadow-lg", // Reduced md:min-w from [360px] to [180px]
-        "bg-blue-700 dark:bg-blue-800" 
+        "w-full md:w-auto md:min-w-[180px] shadow-lg",
+        "bg-card" 
       )}>
       <CardHeader>
-        <CardTitle className="text-gray-100">{cardTitle}</CardTitle>
+        <CardTitle className="text-foreground">{cardTitle}</CardTitle>
       </CardHeader>
       <CardContent className="space-y-2">
-        {/* Labels above respective columns */}
         <div className="grid grid-cols-2 gap-2 mb-1">
           <Label 
             htmlFor={`inning-${inningNumber}-score-header`} 
-            className="text-sm font-medium text-gray-200 dark:text-gray-300 text-center"
+            className="text-sm font-medium text-muted-foreground text-center"
           >
             Score
           </Label>
           <Label 
             htmlFor={`inning-${inningNumber}-detail-header`} 
-            className="text-sm font-medium text-gray-200 dark:text-gray-300 text-center"
+            className="text-sm font-medium text-muted-foreground text-center"
           >
             Team
           </Label>
@@ -96,11 +72,11 @@ export function InningColumn({
             <Input
               id={`inning-${inningNumber}-score-${index}`}
               type="text"
-              value={scoreInputValues[index] || ""}
+              value={scores[index] || ""}
               onChange={(e) => handleScoreInputChange(index, e.target.value)}
               maxLength={MAX_INPUT_LENGTH}
               className={cn(
-                "h-9 text-center transition-colors duration-300 text-base md:text-sm w-1/2", // Changed from w-1/4 to w-1/2
+                "h-9 text-center transition-colors duration-300 text-base md:text-sm w-1/2",
                 "bg-background dark:bg-slate-800 text-foreground dark:text-gray-100",
                 "focus:ring-ring"
               )}
@@ -109,11 +85,11 @@ export function InningColumn({
             <Input
               id={`inning-${inningNumber}-detail-${index}`}
               type="text"
-              value={detailInputValues[index] || ""}
+              value={eventDetails[index] || ""}
               onChange={(e) => handleDetailInputChange(index, e.target.value)}
               maxLength={MAX_INPUT_LENGTH}
               className={cn(
-                "h-9 text-center transition-colors duration-300 text-base md:text-sm w-1/2", // Changed from w-1/4 to w-1/2
+                "h-9 text-center transition-colors duration-300 text-base md:text-sm w-1/2",
                 "bg-background dark:bg-slate-800 text-foreground dark:text-gray-100",
                 "focus:ring-ring"
               )}
@@ -123,7 +99,7 @@ export function InningColumn({
         ))}
       </CardContent>
       <CardFooter>
-        <p className="text-lg font-semibold p-1 rounded text-foreground">
+        <p className="text-lg font-semibold text-foreground">
           Total: {inningStats.runs} runs, {inningStats.wickets} wickets
         </p>
       </CardFooter>

@@ -1,7 +1,7 @@
+
 "use client";
 
-import React, { useState, useMemo, useEffect } from "react";
-// Removed: import { useRouter } from "next/navigation";
+import React, { useState, useMemo } from "react";
 import { InningColumn } from "@/components/inning-column";
 import { Input } from "@/components/ui/input";
 import { cn } from "@/lib/utils";
@@ -14,12 +14,12 @@ import {
   DropdownMenuSeparator,
   DropdownMenuLabel
 } from "@/components/ui/dropdown-menu";
-import { Settings, RotateCcw, Palette } from "lucide-react"; // Removed NotebookPen
+import { Settings, RotateCcw, Palette } from "lucide-react";
 import { ScrollArea } from "@/components/ui/scroll-area";
 import { calculateTotalStats } from "@/lib/score-parser";
 
 
-const SCORE_BOX_COUNT = 17; // Represents events/balls per inning
+const SCORE_BOX_COUNT = 17;
 
 const userColorList = `
 #000000	Black (W3C)
@@ -754,11 +754,10 @@ const parseColorList = (list: string): { name: string; hex: string }[] => {
     .trim()
     .split('\n')
     .map(line => {
-      const parts = line.split(/\s+/); // Split by one or more spaces
+      const parts = line.split(/\s+/);
       if (parts.length >= 2) {
         const hex = parts[0];
-        const name = parts.slice(1).join(' '); // Join the rest as name
-        // Basic hex color validation
+        const name = parts.slice(1).join(' ');
         if (/^#[0-9A-Fa-f]{6}$/.test(hex)) {
           return { name, hex };
         }
@@ -771,24 +770,26 @@ const parseColorList = (list: string): { name: string; hex: string }[] => {
 const extensiveColorOptions = parseColorList(userColorList);
 
 export default function ScoreScribePage() {
-  // Removed: const router = useRouter();
   const [inning1Scores, setInning1Scores] = useState<string[]>(Array(SCORE_BOX_COUNT).fill(""));
   const [inning2Scores, setInning2Scores] = useState<string[]>(Array(SCORE_BOX_COUNT).fill(""));
+  const [inning1EventDetails, setInning1EventDetails] = useState<string[]>(Array(SCORE_BOX_COUNT).fill(""));
+  const [inning2EventDetails, setInning2EventDetails] = useState<string[]>(Array(SCORE_BOX_COUNT).fill(""));
   const [teamName, setTeamName] = useState<string>("");
   const [teamNameInputBgColor, setTeamNameInputBgColor] = useState<string>("");
 
 
-  const inning1Stats = useMemo(() => calculateTotalStats(inning1Scores), [inning1Scores]);
-  const inning2Stats = useMemo(() => calculateTotalStats(inning2Scores), [inning2Scores]);
+  const inning1Stats = useMemo(() => calculateTotalStats(inning1Scores, inning1EventDetails, teamName), [inning1Scores, inning1EventDetails, teamName]);
+  const inning2Stats = useMemo(() => calculateTotalStats(inning2Scores, inning2EventDetails, teamName), [inning2Scores, inning2EventDetails, teamName]);
+
 
   const handleResetGame = () => {
     setTeamName("");
     setInning1Scores(Array(SCORE_BOX_COUNT).fill(""));
     setInning2Scores(Array(SCORE_BOX_COUNT).fill(""));
-    setTeamNameInputBgColor(""); // Reset background color as well
+    setInning1EventDetails(Array(SCORE_BOX_COUNT).fill(""));
+    setInning2EventDetails(Array(SCORE_BOX_COUNT).fill(""));
+    setTeamNameInputBgColor("");
   };
-  
-  // Removed: handleViewScorecard function
 
   return (
     <div className="p-4 sm:p-6 md:p-8 flex flex-col items-center gap-8 min-h-screen relative w-full">
@@ -818,9 +819,9 @@ export default function ScoreScribePage() {
               onChange={(e) => setTeamName(e.target.value)}
               className={cn(
                 "text-center text-3xl font-semibold text-foreground placeholder:text-muted-foreground/70",
-                "flex-grow py-2", // Ensures input takes available space
-                !teamNameInputBgColor && "bg-accent/10 dark:bg-accent/20", // Default background if no custom color
-                "border-primary focus:ring-primary rounded-md" // Standard input styling
+                "flex-grow py-2",
+                !teamNameInputBgColor && "bg-accent/10 dark:bg-accent/20",
+                "border-primary focus:ring-primary rounded-md"
               )}
               style={{ backgroundColor: teamNameInputBgColor || undefined }}
               aria-label="Team Name"
@@ -831,8 +832,8 @@ export default function ScoreScribePage() {
                   <Palette className="h-5 w-5" />
                 </Button>
               </DropdownMenuTrigger>
-              <DropdownMenuContent align="end" className="max-h-96"> {/* Added max-h for scrollability */}
-                <ScrollArea className="h-[300px] w-[250px] p-2"> {/* Added ScrollArea */}
+              <DropdownMenuContent align="end" className="max-h-96">
+                <ScrollArea className="h-[300px] w-[250px] p-2">
                   <DropdownMenuItem onClick={() => setTeamNameInputBgColor("")} className="cursor-pointer">
                     <div className={cn("w-4 h-4 mr-2 rounded-sm border", !teamNameInputBgColor ? "bg-accent/10 dark:bg-accent/20" : "bg-background")}></div>
                     <span>Default</span>
@@ -849,7 +850,6 @@ export default function ScoreScribePage() {
               </DropdownMenuContent>
             </DropdownMenu>
           </div>
-          {/* Removed "View Full Scorecard" Button */}
         </div>
       </header>
 
@@ -858,15 +858,17 @@ export default function ScoreScribePage() {
           inningNumber={1}
           scores={inning1Scores}
           onScoresUpdate={setInning1Scores}
+          eventDetails={inning1EventDetails}
+          onEventDetailsUpdate={setInning1EventDetails}
           inningStats={inning1Stats}
-          // Removed: teamName={teamName}
         />
         <InningColumn
           inningNumber={2}
           scores={inning2Scores}
           onScoresUpdate={setInning2Scores}
+          eventDetails={inning2EventDetails}
+          onEventDetailsUpdate={setInning2EventDetails}
           inningStats={inning2Stats}
-          // Removed: teamName={teamName}
         />
       </main>
       
