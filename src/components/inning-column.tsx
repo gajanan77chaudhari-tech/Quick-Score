@@ -50,19 +50,19 @@ export function InningColumn({
         "bg-card" 
       )}>
       <CardHeader>
-        <CardTitle className="text-foreground">{cardTitle}</CardTitle>
+        <CardTitle className="text-white">{cardTitle}</CardTitle>
       </CardHeader>
       <CardContent className="space-y-2">
         <div className="grid grid-cols-2 gap-2 mb-1">
           <Label 
             htmlFor={`inning-${inningNumber}-score-header`} 
-            className="text-sm font-medium text-muted-foreground text-center"
+            className="text-sm font-medium text-white text-center"
           >
             Score
           </Label>
           <Label 
             htmlFor={`inning-${inningNumber}-detail-header`} 
-            className="text-sm font-medium text-muted-foreground text-center"
+            className="text-sm font-medium text-white text-center"
           >
             Team
           </Label>
@@ -77,7 +77,7 @@ export function InningColumn({
               maxLength={MAX_INPUT_LENGTH}
               className={cn(
                 "h-9 text-center transition-colors duration-300 text-base md:text-sm w-1/2",
-                "bg-background dark:bg-slate-800 text-foreground dark:text-gray-100",
+                "bg-background dark:bg-slate-800 text-white dark:text-gray-100",
                 "focus:ring-ring"
               )}
               aria-label={`Inning ${inningNumber} score entry ${index + 1}`}
@@ -90,7 +90,7 @@ export function InningColumn({
               maxLength={MAX_INPUT_LENGTH}
               className={cn(
                 "h-9 text-center transition-colors duration-300 text-base md:text-sm w-1/2",
-                "bg-background dark:bg-slate-800 text-foreground dark:text-gray-100",
+                "bg-background dark:bg-slate-800 text-white dark:text-gray-100",
                 "focus:ring-ring"
               )}
               aria-label={`Inning ${inningNumber} detail entry ${index + 1}`}
