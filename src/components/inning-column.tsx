@@ -77,7 +77,7 @@ export function InningColumn({
               maxLength={MAX_INPUT_LENGTH}
               className={cn(
                 "h-9 text-center transition-colors duration-300 text-base md:text-sm w-1/2",
-                "bg-background dark:bg-slate-800 text-white dark:text-gray-100",
+                "bg-background dark:bg-slate-800 text-black dark:text-gray-100",
                 "focus:ring-ring"
               )}
               aria-label={`Inning ${inningNumber} score entry ${index + 1}`}
@@ -90,7 +90,7 @@ export function InningColumn({
               maxLength={MAX_INPUT_LENGTH}
               className={cn(
                 "h-9 text-center transition-colors duration-300 text-base md:text-sm w-1/2",
-                "bg-background dark:bg-slate-800 text-white dark:text-gray-100",
+                "bg-background dark:bg-slate-800 text-black dark:text-gray-100",
                 "focus:ring-ring"
               )}
               aria-label={`Inning ${inningNumber} detail entry ${index + 1}`}
