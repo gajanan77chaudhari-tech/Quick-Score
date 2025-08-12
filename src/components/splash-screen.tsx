@@ -30,7 +30,7 @@ export function SplashScreen() {
           layout="fill"
           objectFit="contain"
           priority
-          className="animate-pulse"
+          className="animate-rotate-clockwise"
         />
       </div>
     </div>
