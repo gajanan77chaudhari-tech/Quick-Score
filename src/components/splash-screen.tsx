@@ -25,7 +25,7 @@ export function SplashScreen() {
     >
       <div className="relative w-full h-full rounded-full overflow-hidden animate-rotate-clockwise">
         <Image
-          src="https://uploads.onecompiler.io/42zwkdaww/43tg7azu5/image_2025-08-12_173801193.png"
+          src="https://uploads.onecompiler.io/42zwkdaww/43tg7azu5/Screenshot%202025-08-12%20173713-photoaidcom-cropped.png"
           alt="App Logo"
           layout="fill"
           objectFit="contain"
