@@ -23,14 +23,13 @@ export function SplashScreen() {
         visible ? "opacity-100" : "opacity-0 pointer-events-none"
       )}
     >
-      <div className="relative w-full h-full">
+      <div className="relative w-full h-full rounded-full overflow-hidden animate-rotate-clockwise">
         <Image
           src="https://uploads.onecompiler.io/42zwkdaww/43tg7azu5/image_2025-08-12_173801193.png"
           alt="App Logo"
           layout="fill"
           objectFit="contain"
           priority
-          className="animate-rotate-clockwise"
         />
       </div>
     </div>
