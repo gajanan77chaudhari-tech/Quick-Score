@@ -23,6 +23,7 @@ import { Settings, RotateCcw, Palette, NotebookPen, FileText, Save } from "lucid
 import { ScrollArea } from "@/components/ui/scroll-area";
 import { calculateTotalStats, getCanonicalTeamName } from "@/lib/score-parser";
 import { useToast } from "@/hooks/use-toast";
+import { SplashScreen } from "@/components/splash-screen";
 
 const SCORE_BOX_COUNT = 17;
 const LOCAL_STORAGE_KEY_PREFIX = "scoreScribeAppState_";
@@ -842,6 +843,7 @@ const loadStateForTeam = (teamKey: string): AppState | null => {
 export default function ScoreScribePage() {
   const router = useRouter();
   const { toast } = useToast();
+  const [loading, setLoading] = useState(true);
 
   const [teamName, setTeamName] = useState<string>("");
   const [inning1Scores, setInning1Scores] = useState<string[]>(() => Array(SCORE_BOX_COUNT).fill(""));
@@ -852,6 +854,12 @@ export default function ScoreScribePage() {
   const [highlightedTeamsMap, setHighlightedTeamsMap] = useState<Record<string, { displayName: string, color: string }>>({});
   const [allTeamNames, setAllTeamNames] = useState<string[]>(predefinedTeamNames);
 
+  useEffect(() => {
+    const timer = setTimeout(() => {
+      setLoading(false);
+    }, 2000); // 2 seconds
+    return () => clearTimeout(timer);
+  }, []);
 
   const saveStateForTeam = (teamKey: string, stateToSave: AppState) => {
     if (typeof window === 'undefined' || !teamKey) {
@@ -1055,6 +1063,10 @@ export default function ScoreScribePage() {
     });
   };
 
+
+  if (loading) {
+    return <SplashScreen />;
+  }
 
   return (
     <div className="p-4 sm:p-6 md:p-8 flex flex-col items-center gap-8 min-h-screen relative w-full">
